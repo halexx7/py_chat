@@ -35,10 +35,11 @@ check_and_print(words_byt)
 (не используя методы encode и decode) и определить тип, содержимое и длину соответствующих переменных.
 '''
 
-words_2 = [b'class', b'function', b'method']
+words_2 = ['class', 'function', 'method']
 
 for word in words_2:
-    print(f'{type(word)} - {word} (length: {len(word)})')
+    word_byt = bytes(word, 'utf-8')
+    print(f'{type(word_byt)} - {word_byt} (length: {len(word_byt)})')
 
 # Terminal:
 # <class 'bytes'> - b'class' (length: 5)
@@ -145,21 +146,21 @@ with open('test_file.txt', 'w') as w_obj:
     w_obj.writelines(lines)
 
 
-with open('test_file.txt', 'r') as r_obj:
+with open('test_file.txt') as r_obj:
     print(r_obj)
 #Terminal:
 #<_io.TextIOWrapper name='test_file.txt' mode='r' encoding='cp1251'>
 #Следовательно => кодировка файла - cp1251
 
 
-with open('test_file.txt', 'r', encoding='utf-8') as r_obj:
+with open('test_file.txt', encoding='utf-8') as r_obj:
     print(r_obj.readlines())
 # Terminal:
 # Поднимается исключение:
 # UnicodeDecodeError: 'utf-8' codec can't decode byte 0xf1 in position 0: invalid continuation byte
 
 
-with open('test_file.txt', 'r', encoding='cp1251') as r_obj:
+with open('test_file.txt', encoding='cp1251') as r_obj:
     print(r_obj.readlines())
 # Terminal:
 # Соответственно с правильной кодировкой, все выводится
