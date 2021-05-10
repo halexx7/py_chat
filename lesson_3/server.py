@@ -1,5 +1,4 @@
 from socket import *
-import time
 import pickle
 import sys
 import argparse
@@ -7,8 +6,8 @@ import argparse
 
 def createParser ():
     parser = argparse.ArgumentParser()
-    parser.add_argument ('-p', '--port', default=7777)
-    parser.add_argument ('-a', '--addr', default='')
+    parser.add_argument('-p', '--port', default=7777)
+    parser.add_argument('-a', '--addr', default='')
     return parser
 
 
@@ -32,7 +31,7 @@ if __name__ == "__main__":
     # bind
     parser = createParser()
     namespace = parser.parse_args(sys.argv[1:])
-    srv_sock.bind((namespace.addr, namespace.port))
+    srv_sock.bind((namespace.addr, int(namespace.port)))
 
     # listen    
     srv_sock.listen(5)
