@@ -5,8 +5,8 @@ import argparse
 
 def createParser ():
     parser = argparse.ArgumentParser()
-    parser.add_argument ('addr', nargs='+', default='')
-    parser.add_argument ('port', nargs='?', default='7777')
+    parser.add_argument('addr', nargs='+', type=str, default='')
+    parser.add_argument('port', nargs='?', type=int, default=7777)
     return parser
 
 
@@ -21,7 +21,7 @@ def presets_msg():
     }
     cli_sock.send(pickle.dumps(msg))
     data = cli_sock.recv(1024)
-    print(f'Сообщение от сервера: {pickle.loads(data)}, длинной {len(data)} байт')
+    print(f'Сообщение от сервера: {pickle.loads(data)}')
 
 
 if __name__ == "__main__":
@@ -32,7 +32,7 @@ if __name__ == "__main__":
     # connect
     parser = createParser()
     namespace = parser.parse_args(sys.argv[1:])
-    cli_sock.connect((namespace.addr, namespace.port))     
+    cli_sock.connect((namespace.addr[0], namespace.port))     
     print('Connected to remote host...')
 
     presets_msg()
