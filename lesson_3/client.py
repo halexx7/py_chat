@@ -10,18 +10,31 @@ def createParser ():
     return parser
 
 
-def presets_msg():
+def presets_msg(account_name, password):
     msg = {
         "action": "authenticate",
         "time": "<unix timestamp>",
         "user": {
-                "account_name": "Maver1ck",
-                "password":     "CorrectHorseBatterStaple"
+                "account_name": account_name,
+                "password": password
         }
     }
-    cli_sock.send(pickle.dumps(msg))
-    data = cli_sock.recv(1024)
-    print(f'Сообщение от сервера: {pickle.loads(data)}')
+    return msg
+
+
+def send_msg(msg):
+    msg_serialise = pickle.dumps(msg)
+    return cli_sock.send(msg_serialise)
+
+
+def receiver(bytes=1024):
+    data = cli_sock.recv(bytes)
+    return data
+
+
+def print_msg(data):
+    data = pickle.loads(data)
+    return print(f'Сообщение от сервера: {(data)}')
 
 
 if __name__ == "__main__":
@@ -32,9 +45,21 @@ if __name__ == "__main__":
     # connect
     parser = createParser()
     namespace = parser.parse_args(sys.argv[1:])
-    print(namespace.addr[0])
-    print(namespace.port)
     cli_sock.connect((namespace.addr[0], namespace.port))     
     print('Connected to remote host...')
 
-    presets_msg()
+
+    name = "Maver1ck"
+    pwd =  "CorrectHorseBatterStaple"
+
+
+    msg = presets_msg(account_name=name, password=pwd)
+    send_msg(msg)
+
+
+    data = receiver(1024)
+    print_msg(data)
+
+
+
+
