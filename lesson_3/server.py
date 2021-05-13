@@ -41,7 +41,11 @@ def srv_response(bool):
 
 def srv_send(response, cli):
     data = pickle.dumps(response)
-    return cli.send(data)
+    try:
+        cli.send(data)
+        return True
+    except:
+        return False
 
 
 if __name__ == "__main__":
