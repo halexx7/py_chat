@@ -11,17 +11,37 @@ def createParser ():
     return parser
 
 
-def receiver():
+def srv_recv():
     while True:
         client, addr = srv_sock.accept()
-        data = client.recv(1024)
-        print(pickle.loads(data))
+        try:
+            data = client.recv(1024)
+            print(pickle.loads(data))
+            response = srv_response(True)
+        except:
+            response = srv_response(False)
+        
+        srv_send(response, client)
+        client.close()
+
+
+def srv_response(bool):
+    if bool:
         response = {
             "response": 200,
             "alert":"ОК"
         }
-        client.send(pickle.dumps(response))
-        client.close()
+    else:
+        response = {
+            "response": 400,
+            "alert":"Not ОК"
+        }
+    return response
+
+
+def srv_send(response, cli):
+    data = pickle.dumps(response)
+    return cli.send(data)
 
 
 if __name__ == "__main__":
@@ -37,4 +57,4 @@ if __name__ == "__main__":
     srv_sock.listen(5)
     print('Chat server started on port : ' + str(namespace.port))
 
-    receiver()
+    srv_recv()

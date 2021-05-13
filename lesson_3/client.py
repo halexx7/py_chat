@@ -27,7 +27,7 @@ def send_msg(msg):
     return cli_sock.send(msg_serialise)
 
 
-def receiver(bytes=1024):
+def cli_recv(bytes=1024):
     data = cli_sock.recv(bytes)
     return data
 
@@ -57,7 +57,7 @@ if __name__ == "__main__":
     send_msg(msg)
 
 
-    data = receiver(1024)
+    data = cli_recv(1024)
     print_msg(data)
 
 
