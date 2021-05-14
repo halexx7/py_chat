@@ -1,28 +1,19 @@
 import unittest
-from client import send_msg, print_msg, cli_recv
-import server
+
+from client import loads_srv_msg, presets_msg
+
 
 class TestClientFunction(unittest.TestCase):
+    def testpresersmsg(self):
+        self.assertEqual(
+            (presets_msg()),
+            b"\x80\x04\x95l\x00\x00\x00\x00\x00\x00\x00}\x94(\x8c\x06action\x94\x8c\x0cauthenticate\x94\x8c\x04time\x94\x8c\x10<unix timestamp>\x94\x8c\x04user\x94}\x94(\x8c\x0caccount_name\x94\x8c\x04Dave\x94\x8c\x08password\x94\x8c\x06Secret\x94uu.",
+        )
 
-    def testsendmsg(self):
-        self.assertEqual(send_msg(
-            {
-                "action": "authenticate",
-                "time": "<unix timestamp>",
-                "user": {
-                        "account_name": "Maver1ck",
-                        "password": "Correct"
-                }
-            }
-        ), False)
-
-    def testcli_recv(self):
-        self.assertEqual(cli_recv(1024), (b'\x80\x04\x95!\x00\x00\x00\x00\x00\x00\x00}\x94(\x8c\x08response\x94K\xc8\x8c\x05alert\x94\x8c\x04\xd0\x9e\xd0\x9a\x94u.'))
+    def testclirecv(self):
+        msg = b"\x80\x04\x95!\x00\x00\x00\x00\x00\x00\x00}\x94(\x8c\x08response\x94K\xc8\x8c\x05alert\x94\x8c\x04\xd0\x9e\xd0\x9a\x94u."
+        self.assertEqual((loads_srv_msg(msg)), {"response": 200, "alert": "ОК"})
 
 
-    def testprint_msg(self):
-        self.assertEqual(print_msg({'response': 200, 'alert': 'ОК'}), "Сообщение от сервера: {'response': 200, 'alert': 'ОК'}")
-   
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

@@ -1,64 +1,55 @@
-from socket import *
+import argparse
 import pickle
 import sys
-import argparse
+from socket import *
 
 # socket
 cli_sock = socket(AF_INET, SOCK_STREAM)
 
-def createParser ():
+
+def createParser():
     parser = argparse.ArgumentParser()
-    parser.add_argument ('addr', nargs='+', default='')
-    parser.add_argument ('port', nargs='?', default=7777)
+    parser.add_argument("addr", nargs="?", type=str, default="localhost")
+    parser.add_argument("port", nargs="?", type=int, default=7777)
     return parser
 
 
-def presets_msg(account_name, password):
+def presets_msg():
     msg = {
         "action": "authenticate",
         "time": "<unix timestamp>",
-        "user": {
-                "account_name": account_name,
-                "password": password
-        }
+        "user": {"account_name": "Dave", "password": "Secret"},
     }
-    return msg
+    msg_serialise = pickle.dumps(msg)
+    return msg_serialise
 
 
 def send_msg(msg):
-    msg_serialise = pickle.dumps(msg)
-    print(msg_serialise)
-    try:
-        cli_sock.send(msg_serialise)
-        return True
-    except:
-        return False
+    cli_sock.send(msg)
 
-def cli_recv(bytes=1024):
-    data = pickle.loads(cli_sock.recv(bytes))
+
+def cli_recv():
+    data = cli_sock.recv(1024)
     return data
 
+
+def loads_srv_msg(data):
+    msg = pickle.loads(data)
+    return msg
+
+
 def print_msg(data):
-    print(f'Сообщение от сервера: {(data)}')
+    print(f"Server message: {(data)}")
 
 
-if __name__ == "__main__":
+# connect
+parser = createParser()
+namespace = parser.parse_args(sys.argv[1:])
+cli_sock.connect((namespace.addr, namespace.port))
+print("Connected to remote host...")
 
-    # connect
-    parser = createParser()
-    namespace = parser.parse_args(sys.argv[1:])
-    cli_sock.connect((namespace.addr[0], namespace.port))     
-    print('Connected to remote host...')
+msg = presets_msg()
+send_msg(msg)
 
-    name = "Maver1ck"
-    pwd =  "Correct"
-
-    msg = presets_msg(account_name=name, password=pwd)
-    send_msg(msg)
-
-    data = cli_recv(1024)
-    print_msg(data)
-
-
-
-
+data = cli_recv()
+print_msg(loads_srv_msg(data))

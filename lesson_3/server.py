@@ -1,13 +1,13 @@
-from socket import *
+import argparse
 import pickle
 import sys
-import argparse
+from socket import *
 
 
-def createParser ():
+def createParser():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-p', '--port', default=7777)
-    parser.add_argument('-a', '--addr', default='')
+    parser.add_argument("-p", "--port", default=7777)
+    parser.add_argument("-a", "--addr", default="")
     return parser
 
 
@@ -20,32 +20,22 @@ def srv_recv():
             response = srv_response(True)
         except:
             response = srv_response(False)
-        
+
         srv_send(response, client)
         client.close()
 
 
 def srv_response(bool):
     if bool:
-        response = {
-            "response": 200,
-            "alert":"ОК"
-        }
+        response = {"response": 200, "alert": "ОК"}
     else:
-        response = {
-            "response": 400,
-            "alert":"Not ОК"
-        }
+        response = {"response": 400, "alert": "Not ОК"}
     return response
 
 
 def srv_send(response, cli):
     data = pickle.dumps(response)
-    try:
-        cli.send(data)
-        return True
-    except:
-        return False
+    cli.send(data)
 
 
 if __name__ == "__main__":
@@ -57,8 +47,8 @@ if __name__ == "__main__":
     namespace = parser.parse_args(sys.argv[1:])
     srv_sock.bind((namespace.addr, int(namespace.port)))
 
-    # listen    
+    # listen
     srv_sock.listen(5)
-    print('Chat server started on port : ' + str(namespace.port))
+    print("Chat server started on port : " + str(namespace.port))
 
     srv_recv()
