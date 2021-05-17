@@ -1,7 +1,9 @@
 import argparse
 import pickle
 import sys
-from socket import *
+from socket import socket, AF_INET, SOCK_STREAM
+
+from log.server_log_config import logger
 
 
 def createParser():
@@ -14,12 +16,15 @@ def createParser():
 def srv_recv():
     while True:
         client, addr = srv_sock.accept()
+        
         try:
             data = client.recv(1024)
-            print(pickle.loads(data))
             response = srv_response(True)
+            logger.info('ОК! The message is received.')
         except:
             response = srv_response(False)
+            logger.exception('Это сообщение об ошибке:')
+            logger.error('NOT ОК! Something went wrong: ' + str(error))
 
         srv_send(response, client)
         client.close()
@@ -36,9 +41,11 @@ def srv_response(bool):
 def srv_send(response, cli):
     data = pickle.dumps(response)
     cli.send(data)
+    logger.info('Message send')
 
 
 if __name__ == "__main__":
+
     # socket
     srv_sock = socket(AF_INET, SOCK_STREAM)
 
@@ -49,6 +56,8 @@ if __name__ == "__main__":
 
     # listen
     srv_sock.listen(5)
-    print("Chat server started on port : " + str(namespace.port))
+    logger.info(f'Chat server started on port : {int(namespace.port)}')
 
     srv_recv()
+
+

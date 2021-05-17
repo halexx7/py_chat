@@ -1,11 +1,12 @@
 import argparse
 import pickle
 import sys
-from socket import *
+from socket import socket, AF_INET, SOCK_STREAM
+
+from log.client_log_config import logger
 
 # socket
 cli_sock = socket(AF_INET, SOCK_STREAM)
-
 
 def createParser():
     parser = argparse.ArgumentParser()
@@ -26,10 +27,12 @@ def presets_msg():
 
 def send_msg(msg):
     cli_sock.send(msg)
+    logger.info("Message send")
 
 
 def cli_recv():
     data = cli_sock.recv(1024)
+    logger.info("The message is received")
     return data
 
 
@@ -39,14 +42,14 @@ def loads_srv_msg(data):
 
 
 def print_msg(data):
-    print(f"Server message: {(data)}")
+    logger.info(f"Server message: {(data)}")
 
 
 # connect
 parser = createParser()
 namespace = parser.parse_args(sys.argv[1:])
 cli_sock.connect((namespace.addr, namespace.port))
-print("Connected to remote host...")
+logger.info(f"Connected to remote host - {namespace.addr}:{namespace.port} ")
 
 msg = presets_msg()
 send_msg(msg)

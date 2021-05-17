@@ -1,6 +1,9 @@
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import unittest
 
-from client import loads_srv_msg, presets_msg
+from lesson_3.client import loads_srv_msg, presets_msg
 
 
 class TestClientFunction(unittest.TestCase):
