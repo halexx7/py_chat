@@ -23,7 +23,7 @@ def srv_recv():
             logger.info('ОК! The message is received.')
         except:
             response = srv_response(False)
-            logger.exception('Это сообщение об ошибке:')
+            logger.exception('This error message:')
             logger.error('NOT ОК! Something went wrong: ' + str(error))
 
         srv_send(response, client)
@@ -32,9 +32,9 @@ def srv_recv():
 
 def srv_response(bool):
     if bool:
-        response = {"response": 200, "alert": "ОК"}
+        response = {"response": 200, "alert": "OK"}
     else:
-        response = {"response": 400, "alert": "Not ОК"}
+        response = {"response": 400, "alert": "Not OK"}
     return response
 
 
@@ -52,11 +52,17 @@ if __name__ == "__main__":
     # bind
     parser = createParser()
     namespace = parser.parse_args(sys.argv[1:])
-    srv_sock.bind((namespace.addr, int(namespace.port)))
 
-    # listen
-    srv_sock.listen(5)
-    logger.info(f'Chat server started on port : {int(namespace.port)}')
+    try:
+        if not 1024 <= namespace.port <= 65535:
+            raise ValueError
+        srv_sock.bind((namespace.addr, int(namespace.port)))
+        # listen
+        srv_sock.listen(5)
+        logger.info(f'Chat server started on port : {int(namespace.port)}')
+    except ValueError:
+        logger.critical('The port must be in the range 1024-6535')
+        sys.exit(1)
 
     srv_recv()
 

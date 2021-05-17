@@ -5,8 +5,6 @@ from socket import socket, AF_INET, SOCK_STREAM
 
 from log.client_log_config import logger
 
-# socket
-cli_sock = socket(AF_INET, SOCK_STREAM)
 
 def createParser():
     parser = argparse.ArgumentParser()
@@ -48,8 +46,21 @@ def print_msg(data):
 # connect
 parser = createParser()
 namespace = parser.parse_args(sys.argv[1:])
-cli_sock.connect((namespace.addr, namespace.port))
-logger.info(f"Connected to remote host - {namespace.addr}:{namespace.port} ")
+
+try:
+    if not 1024 <= namespace.port <= 65535:
+        raise ValueError
+    cli_sock = socket(AF_INET, SOCK_STREAM)
+    if not cli_sock.connect((namespace.addr, namespace.port)):
+        raise ConnectionRefusedError
+    logger.info(f"Connected to remote host - {namespace.addr}:{namespace.port} ")
+except ValueError:
+    logger.critical('The port must be in the range 1024-6535')
+    sys.exit(1)
+except ConnectionRefusedError:
+    logger.exception('This error message:')
+    print(f'Connection dropped, check the hostname and port number of the remote host')
+
 
 msg = presets_msg()
 send_msg(msg)

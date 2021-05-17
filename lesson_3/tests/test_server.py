@@ -1,15 +1,19 @@
-#! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
 import unittest
+import sys
+import os.path
 
-from .lesson_3.server import srv_response
+sys.path.append(
+    os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
+
+import server
 
 class TestServerFunction(unittest.TestCase):
     def testsrvresponse(self):
-        self.assertEqual(srv_response(True), {"response": 200, "alert": "OK"})
+        self.assertEqual(server.srv_response(True), {"response": 200, "alert": "OK"})
         self.assertEqual(
-            srv_response(False), {"response": 400, "alert": "Not ОК"}
+            server.srv_response(False), {"response": 400, "alert": "Not OK"}
         )
 
 
