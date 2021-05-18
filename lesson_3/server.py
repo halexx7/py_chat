@@ -8,8 +8,8 @@ from log.server_log_config import logger
 
 def createParser():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-p", "--port", default=7777)
-    parser.add_argument("-a", "--addr", default="")
+    parser.add_argument("-p", "--port", type=int, default=7777)
+    parser.add_argument("-a", "--addr", type=str, default="localhost")
     return parser
 
 
@@ -51,7 +51,7 @@ if __name__ == "__main__":
 
     # bind
     parser = createParser()
-    namespace = parser.parse_args(sys.argv[1:])
+    namespace = parser.parse_args()
 
     try:
         if not 1024 <= namespace.port <= 65535:
