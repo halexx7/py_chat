@@ -4,6 +4,7 @@ import sys
 from socket import socket, AF_INET, SOCK_STREAM
 
 from log.client_log_config import logger
+from log.log_utilities import log
 
 
 def createParser():
@@ -12,7 +13,7 @@ def createParser():
     parser.add_argument("port", nargs="?", type=int, default=7777)
     return parser
 
-
+@log
 def presets_msg():
     msg = {
         "action": "authenticate",
@@ -23,22 +24,26 @@ def presets_msg():
     return msg_serialise
 
 
+@log
 def send_msg(msg):
     cli_sock.send(msg)
     logger.info("Message send")
 
 
+@log
 def cli_recv():
     data = cli_sock.recv(1024)
     logger.info("The message is received")
     return data
 
 
+@log
 def loads_srv_msg(data):
     msg = pickle.loads(data)
     return msg
 
 
+@log
 def print_msg(data):
     logger.info(f"Server message: {(data)}")
 

@@ -4,6 +4,7 @@ import sys
 from socket import socket, AF_INET, SOCK_STREAM
 
 from log.server_log_config import logger
+from log.log_utilities import log
 
 
 def createParser():
@@ -12,7 +13,7 @@ def createParser():
     parser.add_argument("-a", "--addr", type=str, default="localhost")
     return parser
 
-
+@log
 def srv_recv():
     while True:
         client, addr = srv_sock.accept()
@@ -29,7 +30,7 @@ def srv_recv():
         srv_send(response, client)
         client.close()
 
-
+@log
 def srv_response(bool):
     if bool:
         response = {"response": 200, "alert": "OK"}
@@ -37,7 +38,7 @@ def srv_response(bool):
         response = {"response": 400, "alert": "Not OK"}
     return response
 
-
+@log
 def srv_send(response, cli):
     data = pickle.dumps(response)
     cli.send(data)
