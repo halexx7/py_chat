@@ -44,7 +44,7 @@ def print_msg(data):
 
 # connect
 parser = createParser()
-namespace = parser.parse_args(sys.argv[1:])
+namespace = parser.parse_args()
 cli_sock.connect((namespace.addr, namespace.port))
 print("Connected to remote host...")
 

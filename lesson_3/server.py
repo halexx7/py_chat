@@ -44,7 +44,7 @@ if __name__ == "__main__":
 
     # bind
     parser = createParser()
-    namespace = parser.parse_args(sys.argv[1:])
+    namespace = parser.parse_args()
     srv_sock.bind((namespace.addr, int(namespace.port)))
 
     # listen
