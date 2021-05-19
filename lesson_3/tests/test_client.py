@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
 
-import unittest
-import sys
 import os.path
+import sys
+import unittest
 
-sys.path.append(
-    os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
 
-import client 
+import client
 
 
 class TestClientFunction(unittest.TestCase):

@@ -1,10 +1,10 @@
 import argparse
 import pickle
 import sys
-from socket import socket, AF_INET, SOCK_STREAM
+from socket import AF_INET, SOCK_STREAM, socket
 
-from log.server_log_config import logger
 from log.log_utilities import log
+from log.server_log_config import logger
 
 
 def createParser():
@@ -13,22 +13,24 @@ def createParser():
     parser.add_argument("-a", "--addr", type=str, default="localhost")
     return parser
 
+
 @log
 def srv_recv():
     while True:
         client, addr = srv_sock.accept()
-        
+
         try:
             data = client.recv(1024)
             response = srv_response(True)
-            logger.info('ОК! The message is received.')
+            logger.info("ОК! The message is received.")
         except:
             response = srv_response(False)
-            logger.exception('This error message:')
-            logger.error('NOT ОК! Something went wrong: ' + str(error))
+            logger.exception("This error message:")
+            logger.error("NOT ОК! Something went wrong: " + str(error))
 
         srv_send(response, client)
         client.close()
+
 
 @log
 def srv_response(bool):
@@ -38,11 +40,12 @@ def srv_response(bool):
         response = {"response": 400, "alert": "Not OK"}
     return response
 
+
 @log
 def srv_send(response, cli):
     data = pickle.dumps(response)
     cli.send(data)
-    logger.info('Message send')
+    logger.info("Message send")
 
 
 if __name__ == "__main__":
@@ -60,11 +63,9 @@ if __name__ == "__main__":
         srv_sock.bind((namespace.addr, int(namespace.port)))
         # listen
         srv_sock.listen(5)
-        logger.info(f'Chat server started on port : {int(namespace.port)}')
+        logger.info(f"Chat server started on port : {int(namespace.port)}")
     except ValueError:
-        logger.critical('The port must be in the range 1024-6535')
+        logger.critical("The port must be in the range 1024-6535")
         sys.exit(1)
 
     srv_recv()
-
-
