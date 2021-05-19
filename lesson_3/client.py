@@ -1,7 +1,7 @@
 import argparse
 import pickle
 import sys
-from socket import socket, AF_INET, SOCK_STREAM
+from socket import AF_INET, SOCK_STREAM, socket
 
 from log.client_log_config import logger
 from log.log_utilities import log
@@ -12,6 +12,7 @@ def createParser():
     parser.add_argument("addr", nargs="?", type=str, default="localhost")
     parser.add_argument("port", nargs="?", type=int, default=7777)
     return parser
+
 
 @log
 def presets_msg():
@@ -60,13 +61,13 @@ try:
     try:
         cli_sock.connect((namespace.addr, namespace.port))
     except ConnectionRefusedError:
-        logger.exception('This error message:')
-        print(f'Connection dropped, check the hostname and port number of the remote host')
+        logger.exception("This error message:")
+        print(f"Connection dropped, check the hostname and port number of the remote host")
         sys.exit(1)
     logger.info(f"Connected to remote host - {namespace.addr}:{namespace.port} ")
-    
+
 except ValueError:
-    logger.critical('The port must be in the range 1024-6535')
+    logger.critical("The port must be in the range 1024-6535")
     sys.exit(1)
 
 
