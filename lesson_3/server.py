@@ -1,7 +1,7 @@
 import argparse
 import pickle
 import sys
-from socket import socket, AF_INET, SOCK_STREAM
+from socket import AF_INET, SOCK_STREAM, socket
 
 from log.server_log_config import logger
 
