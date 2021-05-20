@@ -90,6 +90,7 @@ for word in words_4:
 '''
 import subprocess
 
+
 def encoder(args):
     subproc_ping = subprocess.Popen(args, stdout=subprocess.PIPE)
 
