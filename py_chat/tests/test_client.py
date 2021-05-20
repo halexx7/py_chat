@@ -1,24 +1,28 @@
-# -*- coding: utf-8 -*-
-
 import os.path
+import socket
 import sys
 import unittest
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
 
-import client
+from client import presets_msg
+from settings.utils import get_message, send_message
+from settings.variables import DEFAULT_IP_ADDRESS, DEFAULT_PORT, RESPONSE
 
 
 class TestClientFunction(unittest.TestCase):
-    def testpresersmsg(self):
-        self.assertEqual(
-            (client.presets_msg()),
-            b"\x80\x04\x95l\x00\x00\x00\x00\x00\x00\x00}\x94(\x8c\x06action\x94\x8c\x0cauthenticate\x94\x8c\x04time\x94\x8c\x10<unix timestamp>\x94\x8c\x04user\x94}\x94(\x8c\x0caccount_name\x94\x8c\x04Dave\x94\x8c\x08password\x94\x8c\x06Secret\x94uu.",
-        )
+    def setUp(self) -> None:
+        self.transport = socket.socket()
+        return super().setUp()
 
-    def testclirecv(self):
-        msg = b"\x80\x04\x95!\x00\x00\x00\x00\x00\x00\x00}\x94(\x8c\x08response\x94K\xc8\x8c\x05alert\x94\x8c\x04\xd0\x9e\xd0\x9a\x94u."
-        self.assertEqual((client.loads_srv_msg(msg)), {"response": 200, "alert": "ОК"})
+    def test_process_ans(self):
+        server_address, server_port = DEFAULT_IP_ADDRESS, DEFAULT_PORT
+        self.transport.connect((server_address, server_port))
+        self.message_to_server = presets_msg()
+        send_message(self.transport, self.message_to_server)
+        self.answer = get_message(self.transport)
+        self.assertEqual(self.answer[RESPONSE], 200)
+        self.transport.close()
 
 
 if __name__ == "__main__":

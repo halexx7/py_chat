@@ -1,22 +1,17 @@
 import inspect
 import json
+import logging
 import sys
 
-from py_chat.settings.jim import pack, unpack
-from py_chat.settings.server_log_config import logger as cli_logger
-from py_chat.settings.server_log_config import logger as srv_logger
-from py_chat.settings.variables import ENCODING, MAX_PACKAGE_LENGTH
-
-if sys.argv[0].find("client") == -1:
-    logger = srv_logger
-else:
-    logger = cli_logger
+from settings.jim import pack, unpack
+from settings.variables import ENCODING, LOG_FILENAME, MAX_PACKAGE_LENGTH
 
 
 def get_message(client):
     """
     Утилита приема и декодирования сообщения.
     Принимает байты и выдает словарь, если принято что - то другое отдает ошибку значения
+
     """
     encoded_response = client.recv(MAX_PACKAGE_LENGTH)
     if isinstance(encoded_response, bytes):
@@ -31,9 +26,20 @@ def send_message(sock, message):
     """
     Утилита кодирования и отправки сообщения.
     Принимает словарь и отправляет его.
+
     """
     encoded_message = pack(message)
     sock.send(encoded_message)
+
+
+logFormatter = logging.Formatter(f"%(asctime)-5s - %(levelname)-5s %(message)s", datefmt="%Y-%m-%dT%H:%M:%S")
+
+logHandler = logging.FileHandler(LOG_FILENAME, encoding=ENCODING)
+logHandler.setFormatter(logFormatter)
+
+logger = logging.getLogger("app." + __name__)
+logger.addHandler(logHandler)
+logger.setLevel(logging.INFO)
 
 
 def log(func):

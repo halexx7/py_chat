@@ -3,10 +3,10 @@ import json
 import sys
 from socket import AF_INET, SOCK_STREAM, socket
 
-from py_chat.settings.client_log_config import logger
-from py_chat.settings.jim import unpack
-from py_chat.settings.utils import get_message, log, send_message
-from py_chat.settings.variables import DEFAULT_IP_ADDRESS, DEFAULT_PORT, RESPONSE, USER
+from settings.client_log_config import logger
+from settings.jim import unpack
+from settings.utils import get_message, log, send_message
+from settings.variables import DEFAULT_IP_ADDRESS, DEFAULT_PORT, RESPONSE, USER
 
 
 def createParser():
@@ -16,6 +16,7 @@ def createParser():
     return parser
 
 
+@log
 def process_ans(message):
     #  Функция разбирает ответ сервера.
     if RESPONSE in message:
@@ -25,6 +26,7 @@ def process_ans(message):
     raise ValueError
 
 
+@log
 def presets_msg():
     msg = {
         "action": "presence",
@@ -34,10 +36,12 @@ def presets_msg():
     return msg
 
 
+@log
 def print_msg(data):
     logger.info(f"Server message: {(data)}")
 
 
+@log
 def main():
     parser = createParser()
     namespace = parser.parse_args()
@@ -63,7 +67,7 @@ def main():
         logger.error("Failed to decode server message.")
 
     logger.info("The message is received")
-    print_msg(unpack(answer))
+    print_msg(answer)
 
 
 if __name__ == "__main__":

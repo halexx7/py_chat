@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import os.path
 import sys
 import unittest
@@ -11,8 +9,8 @@ import server
 
 class TestServerFunction(unittest.TestCase):
     def testsrvresponse(self):
-        self.assertEqual(server.srv_response(True), {"response": 200, "alert": "OK"})
-        self.assertEqual(server.srv_response(False), {"response": 400, "alert": "Not OK"})
+        self.assertEqual(server.get_response(True), {"response": 200})
+        self.assertEqual(server.get_response(False), {"response": 400, "error": "Bad Request"})
 
 
 if __name__ == "__main__":

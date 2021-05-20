@@ -2,10 +2,10 @@ import argparse
 import sys
 from socket import AF_INET, SOCK_STREAM, socket
 
-from py_chat.settings.jim import pack
-from py_chat.settings.server_log_config import logger
-from py_chat.settings.utils import get_message, log
-from py_chat.settings.variables import DEFAULT_IP_ADDRESS, DEFAULT_PORT, MAX_CONNECTIONS
+from settings.jim import pack
+from settings.server_log_config import logger
+from settings.utils import get_message, log
+from settings.variables import DEFAULT_IP_ADDRESS, DEFAULT_PORT, MAX_CONNECTIONS
 
 
 def createParser():

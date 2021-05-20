@@ -1,3 +1,5 @@
+import os
+
 # Порт по умолчанию
 DEFAULT_PORT = 7777
 # IP адрес по умолчанию для подключения клиента
@@ -22,4 +24,15 @@ RESPONSE = "response"
 ERROR = "error"
 RESPONSE_DEFAULT_IP_ADDRESS = "response_default_ip_address"
 
+
+# Ключи используемые в протоколе логирования
+ROOT = os.getcwd()
+DIR_LOG = "logs"
+
+LOG_DIRECTORY = os.path.join(ROOT, DIR_LOG)
+LOG_FILENAME = os.path.join(LOG_DIRECTORY, "app.log")
+
 LOGGER_NAME = "app." + __name__
+
+BACKUP_COUNT = 5
+WHEN_INTERVAL = "D"
