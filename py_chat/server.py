@@ -8,6 +8,7 @@ from settings.utils import get_message, log
 from settings.variables import DEFAULT_IP_ADDRESS, DEFAULT_PORT, MAX_CONNECTIONS
 
 
+@log
 def createParser():
     parser = argparse.ArgumentParser()
     parser.add_argument("-p", "--port", type=int, default=DEFAULT_PORT)

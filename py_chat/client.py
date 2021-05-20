@@ -4,11 +4,11 @@ import sys
 from socket import AF_INET, SOCK_STREAM, socket
 
 from settings.client_log_config import logger
-from settings.jim import unpack
 from settings.utils import get_message, log, send_message
 from settings.variables import DEFAULT_IP_ADDRESS, DEFAULT_PORT, RESPONSE, USER
 
 
+@log
 def createParser():
     parser = argparse.ArgumentParser()
     parser.add_argument("addr", nargs="?", type=str, default=DEFAULT_IP_ADDRESS)
@@ -18,7 +18,7 @@ def createParser():
 
 @log
 def process_ans(message):
-    #  Функция разбирает ответ сервера.
+    """Функция разбирает ответ сервера."""
     if RESPONSE in message:
         if message[RESPONSE] == 200:
             return "200 : OK"
@@ -28,6 +28,7 @@ def process_ans(message):
 
 @log
 def presets_msg():
+    """Функция формирует сообщение серверу"""
     msg = {
         "action": "presence",
         "time": "<unix timestamp>",
@@ -38,14 +39,12 @@ def presets_msg():
 
 @log
 def print_msg(data):
+    """Функция печатает сообщение"""
     logger.info(f"Server message: {(data)}")
 
 
 @log
-def main():
-    parser = createParser()
-    namespace = parser.parse_args()
-
+def main(namespace):
     try:
         if not 1024 <= namespace.port <= 65535:
             raise ValueError
@@ -71,4 +70,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parser = createParser()
+    args = parser.parse_args()
+
+    main(args)
