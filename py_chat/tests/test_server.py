@@ -10,8 +10,8 @@ from server import createParser, get_response
 
 class TestServerFunction(unittest.TestCase):
     def test_createParser(self):
-        parser = argparse.ArgumentParser()
-        self.assertEqual(type(createParser()), type(parser))
+        parser = argparse.ArgumentParser
+        self.assertIsInstance(createParser(), parser)
 
     def testsrvresponse(self):
         self.assertEqual(get_response(True), {"response": 200})

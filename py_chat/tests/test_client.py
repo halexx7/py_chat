@@ -17,8 +17,8 @@ class TestClientFunction(unittest.TestCase):
         return super().setUp()
 
     def test_createParser(self):
-        parser = argparse.ArgumentParser()
-        self.assertEqual(type(createParser()), type(parser))
+        parser = argparse.ArgumentParser
+        self.assertIsInstance(createParser(), parser)
 
     def test_process_ans(self):
         server_address, server_port = DEFAULT_IP_ADDRESS, DEFAULT_PORT
