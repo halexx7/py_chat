@@ -67,7 +67,6 @@ write_to_csv('lesson_2/res_data/main_data.csv')
 
 import json
 
-
 def write_order_to_json(item, quantity, price, buyer, date):
     orders = {
         'товар': item,

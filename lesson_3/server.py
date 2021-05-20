@@ -38,6 +38,7 @@ def srv_send(response, cli):
     cli.send(data)
 
 
+
 if __name__ == "__main__":
     # socket
     srv_sock = socket(AF_INET, SOCK_STREAM)
@@ -52,3 +53,4 @@ if __name__ == "__main__":
     print("Chat server started on port : " + str(namespace.port))
 
     srv_recv()
+

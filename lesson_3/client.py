@@ -53,3 +53,4 @@ send_msg(msg)
 
 data = cli_recv()
 print_msg(loads_srv_msg(data))
+
