@@ -13,7 +13,6 @@
 Проверить работу программы через вызов функции write_to_csv().
 """
 
-
 import csv
 import glob
 import re
@@ -30,6 +29,7 @@ def get_data():
 
     for file in glob.glob("lesson_2/data/*.txt"):
         with open(file, encoding="cp1251") as f:
+
             _temp_list = []
             _temp_header = []
             for line in f:
@@ -51,7 +51,6 @@ def write_to_csv(path):
         writer = csv.writer(f)
         for row in data:
             writer.writerow(row)
-
 
 write_to_csv("lesson_2/res_data/main_data.csv")
 
