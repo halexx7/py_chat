@@ -45,6 +45,8 @@ def print_msg(data):
 
 @log
 def main(namespace):
+    
+
     try:
         if not 1024 <= namespace.port <= 65535:
             raise ValueError
@@ -71,6 +73,8 @@ def main(namespace):
 
 if __name__ == "__main__":
     parser = createParser()
-    args = parser.parse_args()
-
-    main(args)
+    namespace = parser.parse_args()
+    try:
+        main(namespace)
+    except:
+        pass
