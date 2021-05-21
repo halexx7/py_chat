@@ -1,7 +1,5 @@
 import inspect
-import json
 import logging
-import sys
 
 from settings.jim import pack, unpack
 from settings.variables import ENCODING, LOG_FILENAME, MAX_PACKAGE_LENGTH
