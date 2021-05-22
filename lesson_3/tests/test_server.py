@@ -1,21 +1,19 @@
-# -*- coding: utf-8 -*-
-
-import os.path
-import sys
+import argparse
 import unittest
 
-sys.path.append(
-    os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
-
-import server
+from src.server import createParser, get_response
 
 
 class TestServerFunction(unittest.TestCase):
+    def test_createParser(self):
+        parser = argparse.ArgumentParser
+        self.assertIsInstance(createParser(), parser)
+        print("srv_1")
+
     def testsrvresponse(self):
-        self.assertEqual(server.srv_response(True), {"response": 200, "alert": "OK"})
-        self.assertEqual(
-            server.srv_response(False), {"response": 400, "alert": "Not OK"}
-        )
+        self.assertEqual(get_response(True), {"response": 200})
+        self.assertEqual(get_response(False), {"response": 400, "error": "Bad Request"})
+        print("srv_1")
 
 
 if __name__ == "__main__":
