@@ -14,6 +14,6 @@ logHandler = TimedRotatingFileHandler(LOG_FILENAME, when=WHEN_INTERVAL, interval
 logHandler.setFormatter(server_formatter)
 
 
-# logger.addHandler(logHandler)
 logger = logging.getLogger(LOGGER_NAME)
+logger.addHandler(logHandler)
 logger.setLevel(FILE_LOG_LVL)
