@@ -1,12 +1,7 @@
 import argparse
-import os.path
-import sys
 import unittest
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
-
 from server import createParser, get_response
-
 
 class TestServerFunction(unittest.TestCase):
     def test_createParser(self):

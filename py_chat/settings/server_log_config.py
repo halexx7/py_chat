@@ -1,10 +1,8 @@
 import logging
-import os
 from logging.handlers import TimedRotatingFileHandler
 
-from settings.variables import BACKUP_COUNT, ENCODING, LOG_DIRECTORY, LOG_FILENAME, LOGGER_NAME, WHEN_INTERVAL
+from settings.variables import ENCODING, LOG_FILENAME, LOGGER_NAME, WHEN_INTERVAL
 
-logger = logging.getLogger(LOGGER_NAME)
 
 FILE_LOG_LVL = logging.INFO
 
@@ -16,5 +14,6 @@ logHandler = TimedRotatingFileHandler(LOG_FILENAME, when=WHEN_INTERVAL, interval
 logHandler.setFormatter(server_formatter)
 
 
+logger = logging.getLogger(LOGGER_NAME)
 logger.addHandler(logHandler)
 logger.setLevel(FILE_LOG_LVL)
