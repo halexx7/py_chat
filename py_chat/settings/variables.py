@@ -11,6 +11,8 @@ MAX_PACKAGE_LENGTH = 1024
 # Кодировка проекта
 ENCODING = "utf-8"
 
+DEFAULT_SERVER = 'server'
+
 
 # Протокол JIM основные ключи
 ACTION = "message"

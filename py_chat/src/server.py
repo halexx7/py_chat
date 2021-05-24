@@ -5,7 +5,7 @@ from socket import AF_INET, SOCK_STREAM, socket
 from settings.jim import pack
 from settings.server_log_config import logger
 from settings.utils import get_message, log
-from settings.variables import DEFAULT_IP_ADDRESS, DEFAULT_PORT, MAX_CONNECTIONS
+from settings.variables import DEFAULT_IP_ADDRESS, DEFAULT_PORT, MAX_CONNECTIONS, RESPONSE
 
 
 @log
@@ -17,11 +17,8 @@ def createParser():
 
 
 @log
-def main():
+def main(namespace):
     srv_sock = socket(AF_INET, SOCK_STREAM)
-
-    parser = createParser()
-    namespace = parser.parse_args()
 
     try:
         if not 1024 <= namespace.port <= 65535:
@@ -51,8 +48,8 @@ def main():
 @log
 def get_response(bool):
     if bool:
-        return {"response": 200}
-    return {"response": 400, "error": "Bad Request"}
+        return {RESPONSE: 200}
+    return {RESPONSE: 400, "error": "Bad Request"}
 
 
 @log
@@ -62,4 +59,7 @@ def srv_send(response, cli):
 
 
 if __name__ == "__main__":
-    main()
+    parser = createParser()
+    namespace = parser.parse_args()
+
+    main(namespace)
