@@ -1,10 +1,10 @@
 import argparse
 import pickle
 import sys
-from socket import *
+from socket import AF_INET, SOCK_STREAM, socket
 
-# socket
-cli_sock = socket(AF_INET, SOCK_STREAM)
+from log.client_log_config import logger
+from log.log_utilities import log
 
 
 def createParser():
@@ -14,6 +14,7 @@ def createParser():
     return parser
 
 
+@log
 def presets_msg():
     msg = {
         "action": "authenticate",
@@ -24,33 +25,54 @@ def presets_msg():
     return msg_serialise
 
 
+@log
 def send_msg(msg):
     cli_sock.send(msg)
+    logger.info("Message send")
 
 
+@log
 def cli_recv():
     data = cli_sock.recv(1024)
+    logger.info("The message is received")
     return data
 
 
+@log
 def loads_srv_msg(data):
     msg = pickle.loads(data)
     return msg
 
 
+@log
 def print_msg(data):
-    print(f"Server message: {(data)}")
+    logger.info(f"Server message: {(data)}")
 
 
 # connect
 parser = createParser()
 namespace = parser.parse_args()
-cli_sock.connect((namespace.addr, namespace.port))
-print("Connected to remote host...")
+
+try:
+    if not 1024 <= namespace.port <= 65535:
+        raise ValueError
+    cli_sock = socket(AF_INET, SOCK_STREAM)
+
+    try:
+        cli_sock.connect((namespace.addr, namespace.port))
+    except ConnectionRefusedError:
+        logger.exception("This error message:")
+        print(f"Connection dropped, check the hostname and port number of the remote host")
+        sys.exit(1)
+    logger.info(f"Connected to remote host - {namespace.addr}:{namespace.port} ")
+
+except ValueError:
+    logger.critical("The port must be in the range 1024-6535")
+    sys.exit(1)
+
 
 msg = presets_msg()
 send_msg(msg)
 
 data = cli_recv()
 print_msg(loads_srv_msg(data))
-

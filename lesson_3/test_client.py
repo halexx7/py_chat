@@ -1,6 +1,10 @@
+import os.path
+import sys
 import unittest
 
-from client import loads_srv_msg, presets_msg
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
+
+import client
 
 
 class TestClientFunction(unittest.TestCase):
