@@ -5,7 +5,7 @@ from socket import AF_INET, SOCK_STREAM, socket
 
 from settings.cfg_client_log import logger
 from settings.utils import get_message, log, send_message
-from settings.jim import unpack
+from settings.jim import pack, unpack
 from settings.variables import DEFAULT_IP_ADDRESS, DEFAULT_PORT, RESPONSE, USER, ENCODING
 
 
@@ -34,6 +34,18 @@ def presets_msg():
     }
     return msg
 
+def message(alias, message):
+    """Функция формирует сообщение"""
+    msg = {
+        "action": "msg",
+        "time": "<unix timestamp>",
+        "to": "#room_boom",
+        "from": alias,
+        "message": message
+    }
+    return msg
+
+
 def print_msg(data):
     """Функция печатает сообщение"""
     logger.info(f"Server message: {(data)}")
@@ -50,13 +62,16 @@ def main(address):
 
     with socket(AF_INET, SOCK_STREAM) as sock: # Создать сокет TCP
         sock.connect((address.addr, address.port))   # Соединиться с сервером
+        alias = input('Вашу имя: ')
         while True:
             msg = input('Ваше сообщение: ')
             if msg == 'exit':
                 break
-            sock.send(msg.encode(ENCODING)) 	# Отправить!
+
+            sock.send(pack(message(alias, msg))) 	# Отправить!
+
             data = unpack(sock.recv(1024))
-            print(f'Ответ: {data}')
+            print(f'<{data["from"]}>: {data["message"]}')
 
 
 if __name__ == "__main__":

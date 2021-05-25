@@ -3,7 +3,7 @@ import sys
 import select
 from socket import socket, AF_INET, SOCK_STREAM
 
-from settings.jim import pack
+from settings.jim import pack, unpack
 from settings.cfg_server_log import logger
 from settings.utils import get_message, log
 from settings.variables import DEFAULT_IP_ADDRESS, DEFAULT_PORT, MAX_CONNECTIONS, RESPONSE, TIMEOUT, ENCODING
@@ -24,10 +24,10 @@ def read_requests(r_clients, all_clients):
 
     for sock in r_clients:
         try:
-            data = sock.recv(1024).decode(ENCODING)
+            data = unpack(sock.recv(1024))
             responses[sock] = data
         except:
-            print(f'Клиент {sock.fileno()} {sock.getpeername()}')
+            print(f'Клиент {sock.fileno()} {sock.getpeername()} отключился')
             all_clients.remove(sock)
 
     return responses
@@ -38,8 +38,6 @@ def write_responses(requests, w_clients, all_clients):
     """
 
     for sock in w_clients:
-        print(sock)
-        print(requests[sock])
         # if sock in requests:
         try:
             # Подготовить и отправить ответ сервера
@@ -55,21 +53,33 @@ def write_responses(requests, w_clients, all_clients):
             all_clients.remove(sock)
     
 
-
 def write_responses_all(requests, w_clients, all_clients):
-    """ Эхо-ответ сервера клиентам, от которых были запросы
+    """ Пересылка сообщений
     """
+    print(all_clients)
+    for sock in all_clients:
+        for v in requests:
+            dic = requests[v]
+            if dic['to'] == '#room_boom':
+                try:
+                    print(message(dic['from'], dic['message']))
+                    sock.send(pack(message(dic['from'], dic['message'])))
+                except:  # Сокет недоступен, клиент отключился
+                    print(f'Клиент {sock.fileno()} {sock.getpeername()} отключился')
+                    sock.close()
+                    all_clients.remove(sock)
 
-    for sock in w_clients:
-        try:
-            # Подготовить и отправить ответ сервера
-            resp = requests[sock].encode(ENCODING)
-            # Эхо-ответ сделаем чуть непохожим на оригинал
-            sock.send(resp.upper())
-        except:  # Сокет недоступен, клиент отключился
-            print(f'Клиент {sock.fileno()} {sock.getpeername()} отключился')
-            sock.close()
-            all_clients.remove(sock)
+
+def message(alias, message):
+    """Функция формирует сообщение"""
+    msg = {
+        "action": "msg",
+        "time": "<unix timestamp>",
+        "to": "#room_boom",
+        "from": alias,
+        "message": message
+    }
+    return msg
 
 
 @log
@@ -96,7 +106,7 @@ def main(address):
         except OSError as e:
             pass  # timeout вышел
         else:
-            print(f"Получен запрос на соединение от {str(addr)}")
+            print(f"Клиент {str(addr)} подключился")
             clients.append(conn)
         finally:
             # Проверить наличие событий ввода-вывода
@@ -111,8 +121,8 @@ def main(address):
 
             requests = read_requests(r, clients)  # Сохраним запросы клиентов
             if requests:
-                write_responses(requests, w, clients)  # Выполним отправку ответов клиентам
-                # write_responses_all(requests, w, clients)  # Выполним отправку ответов клиентам
+                # write_responses(requests, w, clients)  # Выполним отправку ответов клиентам
+                write_responses_all(requests, w, clients)  # Выполним отправку ответов клиентам
 
 
 if __name__ == "__main__":
