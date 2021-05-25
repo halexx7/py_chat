@@ -18,36 +18,42 @@ def createParser():
 
 
 def read_requests(r_clients, all_clients):
-   """ Чтение запросов из списка клиентов
-   """
-   responses = {}  # Словарь ответов сервера вида {сокет: запрос}
+    """ Чтение запросов из списка клиентов
+    """
+    responses = {}  # Словарь ответов сервера вида {сокет: запрос}
 
-   for sock in r_clients:
-       try:
-           data = sock.recv(1024).decode(ENCODING)
-           responses[sock] = data
-       except:
-           print(f'Клиент {sock.fileno()} {sock.getpeername()}')
-           all_clients.remove(sock)
+    for sock in r_clients:
+        try:
+            data = sock.recv(1024).decode(ENCODING)
+            responses[sock] = data
+        except:
+            print(f'Клиент {sock.fileno()} {sock.getpeername()}')
+            all_clients.remove(sock)
 
-   return responses
+    return responses
 
 
 def write_responses(requests, w_clients, all_clients):
-   """ Эхо-ответ сервера клиентам, от которых были запросы
-   """
+    """ Эхо-ответ сервера клиентам, от которых были запросы
+    """
 
-   for sock in w_clients:
-       if sock in requests:
-           try:
-               # Подготовить и отправить ответ сервера
-               resp = requests[sock].encode(ENCODING)
-               # Эхо-ответ сделаем чуть непохожим на оригинал
-               sock.send(resp.upper())
-           except:  # Сокет недоступен, клиент отключился
-               print(f'Клиент {sock.fileno()} {sock.getpeername()} отключился')
-               sock.close()
-               all_clients.remove(sock)
+    for sock in w_clients:
+        print(sock)
+        print(requests[sock])
+        # if sock in requests:
+        try:
+            # Подготовить и отправить ответ сервера
+            print(1)
+            resp = {'sock':sock.getpeername(), 'msg':requests[sock]}
+            print(resp)
+            # Эхо-ответ сделаем чуть непохожим на оригинал
+            sock.send(pack(resp))
+            print(3)
+        except:  # Сокет недоступен, клиент отключился
+            print(f'Клиент {sock.fileno()} {sock.getpeername()} отключился')
+            sock.close()
+            all_clients.remove(sock)
+    
 
 
 def write_responses_all(requests, w_clients, all_clients):
@@ -106,7 +112,7 @@ def main(address):
             requests = read_requests(r, clients)  # Сохраним запросы клиентов
             if requests:
                 write_responses(requests, w, clients)  # Выполним отправку ответов клиентам
-                write_responses_all(requests, w, clients)  # Выполним отправку ответов клиентам
+                # write_responses_all(requests, w, clients)  # Выполним отправку ответов клиентам
 
 
 if __name__ == "__main__":

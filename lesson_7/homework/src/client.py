@@ -5,6 +5,7 @@ from socket import AF_INET, SOCK_STREAM, socket
 
 from settings.cfg_client_log import logger
 from settings.utils import get_message, log, send_message
+from settings.jim import unpack
 from settings.variables import DEFAULT_IP_ADDRESS, DEFAULT_PORT, RESPONSE, USER, ENCODING
 
 
@@ -36,6 +37,7 @@ def presets_msg():
 def print_msg(data):
     """Функция печатает сообщение"""
     logger.info(f"Server message: {(data)}")
+    
 
 def main(address):
     try:
@@ -53,7 +55,7 @@ def main(address):
             if msg == 'exit':
                 break
             sock.send(msg.encode(ENCODING)) 	# Отправить!
-            data = sock.recv(1024).decode(ENCODING)
+            data = unpack(sock.recv(1024))
             print(f'Ответ: {data}')
 
 
