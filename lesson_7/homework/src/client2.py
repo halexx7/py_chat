@@ -93,13 +93,13 @@ def main(address):
         while True:
             sock_lst = [sock]
 
-            msg = input('Say: ')
-            if msg == 'exit':
-                break
+            # msg = input('Say: ')
+            # if msg == 'exit':
+            #     break
 
             r, w, e = select.select(sock_lst , sock_lst, [], 0)
 
-            write_responses(alias, w, msg)
+            # write_responses(alias, w, msg)
             read_requests(r, sock_lst)
 
 

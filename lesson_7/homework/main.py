@@ -1,5 +1,5 @@
 import argparse
-from src import client, server
+from src import client, server, client2
 from settings.variables import DEFAULT_SERVER, DEFAULT_PORT, DEFAULT_IP_ADDRESS
 
 
@@ -24,3 +24,5 @@ if __name__ == "__main__":
         server.main(what_run)
     elif what_run.type == 'client':
         client.main(what_run)
+    elif what_run.type == 'client2':
+        client2.main(what_run)

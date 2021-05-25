@@ -41,29 +41,24 @@ def write_responses(requests, w_clients, all_clients):
         # if sock in requests:
         try:
             # Подготовить и отправить ответ сервера
-            print(1)
             resp = {'sock':sock.getpeername(), 'msg':requests[sock]}
-            print(resp)
             # Эхо-ответ сделаем чуть непохожим на оригинал
             sock.send(pack(resp))
-            print(3)
         except:  # Сокет недоступен, клиент отключился
             print(f'Клиент {sock.fileno()} {sock.getpeername()} отключился')
             sock.close()
             all_clients.remove(sock)
     
 
-def write_responses_all(requests, w_clients, all_clients):
+def write_responses_all(requests, all_clients):
     """ Пересылка сообщений
     """
-    print(all_clients)
     for sock in all_clients:
-        for v in requests:
-            dic = requests[v]
-            if dic['to'] == '#room_boom':
+        for val in requests.values():
+            if val['to'] == '#room_boom':
                 try:
-                    print(message(dic['from'], dic['message']))
-                    sock.send(pack(message(dic['from'], dic['message'])))
+                    # print(message(val['from'], val['message']))
+                    sock.send(pack(message(val['from'], val['message'])))
                 except:  # Сокет недоступен, клиент отключился
                     print(f'Клиент {sock.fileno()} {sock.getpeername()} отключился')
                     sock.close()
@@ -122,7 +117,7 @@ def main(address):
             requests = read_requests(r, clients)  # Сохраним запросы клиентов
             if requests:
                 # write_responses(requests, w, clients)  # Выполним отправку ответов клиентам
-                write_responses_all(requests, w, clients)  # Выполним отправку ответов клиентам
+                write_responses_all(requests, clients)
 
 
 if __name__ == "__main__":
