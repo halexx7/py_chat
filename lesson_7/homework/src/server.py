@@ -1,12 +1,12 @@
 import argparse
-import sys
 import select
-from socket import socket, AF_INET, SOCK_STREAM
+import sys
+from socket import AF_INET, SOCK_STREAM, socket
 
-from settings.jim import pack, unpack
 from settings.cfg_server_log import logger
-from settings.utils import get_message, log, my_except_hook
-from settings.variables import DEFAULT_IP_ADDRESS, DEFAULT_PORT, MAX_CONNECTIONS, TIMEOUT
+from settings.jim import pack, unpack
+from settings.utils import get_message, log
+from settings.variables import DEFAULT_IP_ADDRESS, DEFAULT_PORT, INDENT, MAX_CONNECTIONS, TIMEOUT, WAIT
 
 
 @log
@@ -17,10 +17,19 @@ def createParser():
     return parser
 
 
+def my_except_hook(exctype, value, traceback):
+    """Выводим человекочитаемый 'Server STOP', при нажатии CTR + C"""
+
+    if exctype == KeyboardInterrupt:
+        print(f"{INDENT}\n\tServer STOP!\n{INDENT}")
+    else:
+        sys.__excepthook__(exctype, value, traceback)
+
+
 @log
 def read_requests(r_clients, all_clients):
-    """ Чтение запросов из списка клиентов
-    """
+    """Чтение запросов из списка клиентов"""
+
     responses = {}  # Словарь ответов сервера вида {сокет: запрос}
 
     for sock in r_clients:
@@ -28,42 +37,25 @@ def read_requests(r_clients, all_clients):
             data = unpack(sock.recv(1024))
             responses[sock] = data
         except:
-            print(f'Client {sock.fileno()} {sock.getpeername()} DISCONNECTED')
-            logger.info(f'Client {sock.fileno()} {sock.getpeername()} DISCONNECTED')
+            print(f"Client {sock.fileno()} {sock.getpeername()} DISCONNECTED")
+            logger.info(f"Client {sock.fileno()} {sock.getpeername()} DISCONNECTED")
             all_clients.remove(sock)
 
     return responses
 
 
 @log
-def write_responses(requests, w_clients, all_clients):
-    """ Эхо-ответ сервера клиентам, от которых были запросы
-    """
+def broadband(requests, all_clients):
+    """Флудилка"""
 
-    for sock in w_clients:
-        if sock in requests:
-            try:
-                resp = {'sock':sock.getpeername(), 'msg':requests[sock]}
-                sock.send(pack(resp))
-            except:  # Сокет недоступен, клиент отключился
-                print(f'Client {sock.fileno()} {sock.getpeername()} DISCONNECTED')
-                logger.info(f'Client {sock.fileno()} {sock.getpeername()} DISCONNECTED')
-                sock.close()
-                all_clients.remove(sock)
-
-
-@log
-def write_responses_all(requests, all_clients):
-    """ Флудилка
-    """
     for sock in all_clients:
         for val in requests.values():
-            if val['to'] == '#room_boom':
+            if val["to"] == "#room_boom":
                 try:
-                    sock.send(pack(message(val['from'], val['message'])))
+                    sock.send(pack(message(val["from"], val["message"])))
                 except:  # Сокет недоступен, клиент отключился
-                    print(f'Client {sock.fileno()} {sock.getpeername()} DISCONNECTED')
-                    logger.info(f'Client {sock.fileno()} {sock.getpeername()} DISCONNECTED')
+                    print(f"Client {sock.fileno()} {sock.getpeername()} DISCONNECTED")
+                    logger.info(f"Client {sock.fileno()} {sock.getpeername()} DISCONNECTED")
                     sock.close()
                     all_clients.remove(sock)
 
@@ -71,60 +63,55 @@ def write_responses_all(requests, all_clients):
 @log
 def message(alias, message):
     """Функция формирует сообщение"""
-    msg = {
-        "action": "msg",
-        "time": "<unix timestamp>",
-        "to": "#room_boom",
-        "from": alias,
-        "message": message
-    }
+    msg = {"action": "msg", "time": "<unix timestamp>", "to": "#room_boom", "from": alias, "message": message}
     return msg
 
 
 def main(address):
-    """ Основной скрипт работы сервера"""
+    """Основной скрипт работы сервера"""
 
-    sys.excepthook = my_except_hook # Обрабатываем Ctr+C
-
-    clients = []
+    sys.excepthook = my_except_hook  # Обрабатываем Ctr+C
 
     sock = socket(AF_INET, SOCK_STREAM)
+    clients = []
 
     try:
         if not 1024 <= address.port <= 65535:
             raise ValueError
+
     except ValueError:
         logger.critical("The port must be in the range 1024-6535")
         sys.exit(1)
+
     else:
         sock.bind((address.addr, address.port))
         sock.listen(MAX_CONNECTIONS)
         sock.settimeout(TIMEOUT)
         logger.info(f"The server is RUNNING on the port: {address.port}")
 
-    while True:
-        try:
-            conn, addr = sock.accept()  # Проверка подключений
-        except OSError as e:
-            pass  # timeout вышел
-        else:
-            print(f"Client {str(addr)} CONNECTED")
-            logger.info(f"Client {str(addr)} CONNECTED")
-            clients.append(conn)
-        finally:
-            # Проверить наличие событий ввода-вывода
-            wait = 10
-            r = []
-            w = []
-            e = []
+    finally:
+        while True:
             try:
-                r, w, e = select.select(clients, clients, [], wait)
-            except:
-                pass  # Ничего не делать, если какой-то клиент отключился
+                conn, addr = sock.accept()
+            except OSError as e:
+                pass  # timeout вышел
 
-            requests = read_requests(r, clients)  # Сохраним запросы клиентов
-            if requests:
-                write_responses_all(requests, clients)
+            else:
+                print(f"Client {str(addr)} CONNECTED")
+                logger.info(f"Client {str(addr)} CONNECTED")
+                clients.append(conn)
+
+            finally:
+                r = []
+                w = []
+                try:
+                    r, w, e = select.select(clients, clients, [], WAIT)
+                except:
+                    pass  # Ничего не делать, если какой-то клиент отключился
+
+                requests = read_requests(r, clients)  # Сохраним запросы клиентов
+                if requests:
+                    broadband(requests, clients)  # Флудим
 
 
 if __name__ == "__main__":

@@ -3,6 +3,7 @@ import unittest
 
 from server import createParser, get_response
 
+
 class TestServerFunction(unittest.TestCase):
     def test_createParser(self):
         parser = argparse.ArgumentParser

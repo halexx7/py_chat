@@ -1,4 +1,5 @@
 import logging
+
 from settings.variables import ENCODING, LOG_FILENAME, LOGGER_NAME
 
 FILE_LOG_LVL = logging.INFO
@@ -13,4 +14,3 @@ logHandler.setFormatter(client_formatter)
 logger = logging.getLogger(LOGGER_NAME)
 # logger.addHandler(logHandler)
 logger.setLevel(FILE_LOG_LVL)
-

@@ -12,8 +12,9 @@ BUFFER_SIZE = 1024
 ENCODING = "utf-8"
 # Тайм-аут
 TIMEOUT = 0.2
+WAIT = 10
 
-DEFAULT_SERVER = 'server'
+DEFAULT_SERVER = "server"
 
 
 # Протокол JIM основные ключи
@@ -42,6 +43,5 @@ BACKUP_COUNT = 5
 WHEN_INTERVAL = "D"
 
 
-# Сообщения при нажатии CTR + C
-SERVER_KEY_ERR = '\nServer STOP\n'
-CLIENT_KEY_ERR = '\nConnection interrupted\n'
+# Красивости
+INDENT = 30 * "-"

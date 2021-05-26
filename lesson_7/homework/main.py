@@ -1,6 +1,7 @@
 import argparse
+
+from settings.variables import DEFAULT_IP_ADDRESS, DEFAULT_PORT, DEFAULT_SERVER
 from src import client, server
-from settings.variables import DEFAULT_SERVER, DEFAULT_PORT, DEFAULT_IP_ADDRESS
 
 
 def mainParser():
@@ -20,7 +21,7 @@ def start():
 if __name__ == "__main__":
 
     what_run = start()
-    if what_run.type == 'server':
+    if what_run.type == "server":
         server.main(what_run)
-    elif what_run.type == 'client':
+    elif what_run.type == "client":
         client.main(what_run)

@@ -1,13 +1,13 @@
 import argparse
-import sys
-import select
 import json
+import select
+import sys
 from socket import AF_INET, SOCK_STREAM, socket
 
 from settings.cfg_client_log import logger
-from settings.utils import get_message, log, send_message, my_except_hook
 from settings.jim import pack, unpack
-from settings.variables import DEFAULT_IP_ADDRESS, DEFAULT_PORT, RESPONSE, USER, BUFFER_SIZE
+from settings.utils import get_message, log, send_message
+from settings.variables import DEFAULT_IP_ADDRESS, DEFAULT_PORT, INDENT, RESPONSE, USER
 
 
 @log
@@ -16,6 +16,15 @@ def createParser():
     parser.add_argument("addr", nargs="?", type=str, default=DEFAULT_IP_ADDRESS)
     parser.add_argument("port", nargs="?", type=int, default=DEFAULT_PORT)
     return parser
+
+
+def my_except_hook(exctype, value, traceback):
+    """Выводим человекочитаемый 'Disconnect from the server!', при нажатии CTR + C"""
+
+    if exctype == KeyboardInterrupt:
+        print(f"{INDENT}\n  Disconnect from the server  \n{INDENT}")
+    else:
+        sys.__excepthook__(exctype, value, traceback)
 
 
 @log
@@ -35,7 +44,7 @@ def presets_msg():
         "action": "presence",
         "time": "<unix timestamp>",
         "user": {"account_name": USER, "password": "Secret"},
-    }
+        }
     return msg
 
 
@@ -43,40 +52,45 @@ def presets_msg():
 def message(alias, message):
     """Функция формирует сообщение"""
     msg = {
-        "action": "msg",
-        "time": "<unix timestamp>",
-        "to": "#room_boom",
-        "from": alias,
+        "action": "msg", 
+        "time": "<unix timestamp>", 
+        "to": "#room_boom", 
+        "from": alias, 
         "message": message
-    }
+        }
     return msg
 
 
 def main(address):
-    """ Основной скрипт работы клиента"""
+    """Основной скрипт работы клиента"""
 
-    sys.excepthook = my_except_hook # Обрабатываем Ctr+C
+    sys.excepthook = my_except_hook  # Обрабатываем Ctr+C
 
     try:
         if not 1024 <= address.port <= 65535:
             raise ValueError
         logger.info(f"Connected to remote host - {address.addr}:{address.port} ")
+
     except ValueError:
         logger.critical("The port must be in the range 1024-6535")
         sys.exit(1)
+
     else:
         with socket(AF_INET, SOCK_STREAM) as sock:
             # Соединиться с сервером
-            try :
+            try:
                 sock.connect((address.addr, address.port))
-            except :
-                print(f'Unable to connect')
+
+            except:
+                print(f"Unable to connect")
                 sys.exit()
+
             else:
-                alias = input('Name: ')
-                msg = input('Say: ')
-                if msg == 'exit':
+                alias = input("Name: ")
+                msg = input("Say: ")
+                if msg == "exit":
                     sys.exit(1)
+
                 send_message(sock, message(alias, msg))
                 logger.info("Message send")
 
@@ -85,10 +99,11 @@ def main(address):
                         data = get_message(sock)
                         print(f'<{data["from"] if data["from"] != alias else "You"}>: {data["message"]}')
                         logger.info("The message is received")
+
                     except (ValueError, json.JSONDecodeError):
                         logger.error("Failed to decode server message.")
 
-          
+
 if __name__ == "__main__":
     parser = createParser()
     address = parser.parse_args()
