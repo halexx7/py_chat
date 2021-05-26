@@ -2,7 +2,7 @@ import inspect
 import logging
 
 from settings.jim import pack, unpack
-from settings.variables import ENCODING, LOG_FILENAME, MAX_PACKAGE_LENGTH
+from settings.variables import ENCODING, LOG_FILENAME, BUFFER_SIZE
 
 
 def get_message(client):
@@ -11,7 +11,7 @@ def get_message(client):
     Принимает байты и выдает словарь, если принято что - то другое отдает ошибку значения
 
     """
-    encoded_response = client.recv(MAX_PACKAGE_LENGTH)
+    encoded_response = client.recv(BUFFER_SIZE)
     if isinstance(encoded_response, bytes):
         response = unpack(encoded_response)
         if isinstance(response, dict):

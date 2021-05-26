@@ -6,7 +6,7 @@ from socket import socket, AF_INET, SOCK_STREAM
 from settings.jim import pack, unpack
 from settings.cfg_server_log import logger
 from settings.utils import get_message, log
-from settings.variables import DEFAULT_IP_ADDRESS, DEFAULT_PORT, MAX_CONNECTIONS, RESPONSE, TIMEOUT, ENCODING
+from settings.variables import DEFAULT_IP_ADDRESS, DEFAULT_PORT, MAX_CONNECTIONS, TIMEOUT
 
 
 @log
@@ -17,6 +17,7 @@ def createParser():
     return parser
 
 
+@log
 def read_requests(r_clients, all_clients):
     """ Чтение запросов из списка клиентов
     """
@@ -27,44 +28,47 @@ def read_requests(r_clients, all_clients):
             data = unpack(sock.recv(1024))
             responses[sock] = data
         except:
-            print(f'Клиент {sock.fileno()} {sock.getpeername()} отключился')
+            print(f'Client {sock.fileno()} {sock.getpeername()} DISCONNECTED')
+            logger.info(f'Client {sock.fileno()} {sock.getpeername()} DISCONNECTED')
             all_clients.remove(sock)
 
     return responses
 
 
+@log
 def write_responses(requests, w_clients, all_clients):
     """ Эхо-ответ сервера клиентам, от которых были запросы
     """
 
     for sock in w_clients:
-        # if sock in requests:
-        try:
-            # Подготовить и отправить ответ сервера
-            resp = {'sock':sock.getpeername(), 'msg':requests[sock]}
-            # Эхо-ответ сделаем чуть непохожим на оригинал
-            sock.send(pack(resp))
-        except:  # Сокет недоступен, клиент отключился
-            print(f'Клиент {sock.fileno()} {sock.getpeername()} отключился')
-            sock.close()
-            all_clients.remove(sock)
-    
+        if sock in requests:
+            try:
+                resp = {'sock':sock.getpeername(), 'msg':requests[sock]}
+                sock.send(pack(resp))
+            except:  # Сокет недоступен, клиент отключился
+                print(f'Client {sock.fileno()} {sock.getpeername()} DISCONNECTED')
+                logger.info(f'Client {sock.fileno()} {sock.getpeername()} DISCONNECTED')
+                sock.close()
+                all_clients.remove(sock)
 
+
+@log
 def write_responses_all(requests, all_clients):
-    """ Пересылка сообщений
+    """ Флудилка
     """
     for sock in all_clients:
         for val in requests.values():
             if val['to'] == '#room_boom':
                 try:
-                    # print(message(val['from'], val['message']))
                     sock.send(pack(message(val['from'], val['message'])))
                 except:  # Сокет недоступен, клиент отключился
-                    print(f'Клиент {sock.fileno()} {sock.getpeername()} отключился')
+                    print(f'Client {sock.fileno()} {sock.getpeername()} DISCONNECTED')
+                    logger.info(f'Client {sock.fileno()} {sock.getpeername()} DISCONNECTED')
                     sock.close()
                     all_clients.remove(sock)
 
 
+@log
 def message(alias, message):
     """Функция формирует сообщение"""
     msg = {
@@ -77,7 +81,6 @@ def message(alias, message):
     return msg
 
 
-@log
 def main(address):
     clients = []
 
@@ -93,7 +96,7 @@ def main(address):
         sock.bind((address.addr, address.port))
         sock.listen(MAX_CONNECTIONS)
         sock.settimeout(TIMEOUT)
-        logger.info(f"Сервер запущен на порту: {address.port}")
+        logger.info(f"The server is running on the port: {address.port}")
 
     while True:
         try:
@@ -101,7 +104,8 @@ def main(address):
         except OSError as e:
             pass  # timeout вышел
         else:
-            print(f"Клиент {str(addr)} подключился")
+            print(f"Client {str(addr)} CONNECTED")
+            logger.info(f"Client {str(addr)} CONNECTED")
             clients.append(conn)
         finally:
             # Проверить наличие событий ввода-вывода
@@ -116,7 +120,6 @@ def main(address):
 
             requests = read_requests(r, clients)  # Сохраним запросы клиентов
             if requests:
-                # write_responses(requests, w, clients)  # Выполним отправку ответов клиентам
                 write_responses_all(requests, clients)
 
 

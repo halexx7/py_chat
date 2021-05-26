@@ -7,7 +7,7 @@ DEFAULT_IP_ADDRESS = "127.0.0.1"
 # Максимальная очередь подключений
 MAX_CONNECTIONS = 5
 # Максимальная длина сообщений в байтах
-MAX_PACKAGE_LENGTH = 1024
+BUFFER_SIZE = 1024
 # Кодировка проекта
 ENCODING = "utf-8"
 # Тайм-аут
