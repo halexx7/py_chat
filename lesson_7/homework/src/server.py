@@ -5,7 +5,7 @@ from socket import socket, AF_INET, SOCK_STREAM
 
 from settings.jim import pack, unpack
 from settings.cfg_server_log import logger
-from settings.utils import get_message, log
+from settings.utils import get_message, log, my_except_hook
 from settings.variables import DEFAULT_IP_ADDRESS, DEFAULT_PORT, MAX_CONNECTIONS, TIMEOUT
 
 
@@ -82,6 +82,10 @@ def message(alias, message):
 
 
 def main(address):
+    """ Основной скрипт работы сервера"""
+
+    sys.excepthook = my_except_hook # Обрабатываем Ctr+C
+
     clients = []
 
     sock = socket(AF_INET, SOCK_STREAM)
@@ -96,7 +100,7 @@ def main(address):
         sock.bind((address.addr, address.port))
         sock.listen(MAX_CONNECTIONS)
         sock.settimeout(TIMEOUT)
-        logger.info(f"The server is running on the port: {address.port}")
+        logger.info(f"The server is RUNNING on the port: {address.port}")
 
     while True:
         try:

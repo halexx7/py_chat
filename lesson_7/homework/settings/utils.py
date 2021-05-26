@@ -1,5 +1,6 @@
 import inspect
 import logging
+import sys
 
 from settings.jim import pack, unpack
 from settings.variables import ENCODING, LOG_FILENAME, BUFFER_SIZE
@@ -48,3 +49,12 @@ def log(func):
         return r
 
     return wrapper
+
+
+def my_except_hook(exctype, value, traceback, msg):
+    """ Выводим человекочитаемый 'Server STOP', при нажатии CTR + C """
+    
+    if exctype == KeyboardInterrupt:
+        print(msg)
+    else:
+        sys.__excepthook__(exctype, value, traceback)

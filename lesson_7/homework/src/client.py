@@ -5,7 +5,7 @@ import json
 from socket import AF_INET, SOCK_STREAM, socket
 
 from settings.cfg_client_log import logger
-from settings.utils import get_message, log, send_message
+from settings.utils import get_message, log, send_message, my_except_hook
 from settings.jim import pack, unpack
 from settings.variables import DEFAULT_IP_ADDRESS, DEFAULT_PORT, RESPONSE, USER, BUFFER_SIZE
 
@@ -53,6 +53,10 @@ def message(alias, message):
 
 
 def main(address):
+    """ Основной скрипт работы клиента"""
+
+    sys.excepthook = my_except_hook # Обрабатываем Ctr+C
+
     try:
         if not 1024 <= address.port <= 65535:
             raise ValueError

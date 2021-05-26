@@ -40,3 +40,8 @@ LOGGER_NAME = "app." + __name__
 
 BACKUP_COUNT = 5
 WHEN_INTERVAL = "D"
+
+
+# Сообщения при нажатии CTR + C
+SERVER_KEY_ERR = '\nServer STOP\n'
+CLIENT_KEY_ERR = '\nConnection interrupted\n'
