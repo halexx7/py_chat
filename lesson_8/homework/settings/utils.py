@@ -6,20 +6,19 @@ from settings.jim import pack, unpack
 from settings.variables import BUFFER_SIZE, ENCODING, LOG_FILENAME
 
 
-def get_message(sock, alias):
+def get_message(sock):
     """
     Утилита приема и декодирования сообщения.
     Принимает байты и выдает словарь, если принято что - то другое отдает ошибку значения
 
     """
-    while 1:
-        encoded_response = sock.recv(BUFFER_SIZE)
-        if isinstance(encoded_response, bytes):
-            response = unpack(encoded_response)
-            if isinstance(response, dict):
-                return response
-            raise ValueError
+    encoded_response = sock.recv(BUFFER_SIZE)
+    if isinstance(encoded_response, bytes):
+        response = unpack(encoded_response)
+        if isinstance(response, dict):
+            return response
         raise ValueError
+    raise ValueError
 
 
 def send_message(sock, msg):

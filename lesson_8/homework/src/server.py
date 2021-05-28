@@ -2,16 +2,20 @@ import argparse
 import select
 from threading import Thread
 import sys
+from re import match
 from socket import AF_INET, SOCK_STREAM, socket
 
 from settings.cfg_server_log import logger
 from settings.response import action_msg, action_probe
 from settings.jim import pack, unpack
-from settings.utils import get_message, log, send_messages
+from settings.utils import get_message, log, send_message
 from settings.variables import DEFAULT_IP_ADDRESS, DEFAULT_PORT, INDENT, MAX_CONNECTIONS, TIMEOUT, WAIT
 
 
-rooms = [{'room_name': '#all', 'clients': [],'nicknames': []}]
+clients = []
+nicknames = []
+#TODO нужна ли комната all?
+rooms = [{'room_name': '#all', 'clients': clients,'nicknames': nicknames}]
 
 
 def createParser():
@@ -30,36 +34,62 @@ def my_except_hook(exctype, value, traceback):
         sys.__excepthook__(exctype, value, traceback)
 
 
-def handle(rooms):
-    """Чтение запросов из списка клиентов"""
-    while True:
-        try:                                                            #recieving valid messages from client
-            message = client.recv(1024)
-            broadcast(message)
-        except:                                                         #removing clients
-            index = clients.index(client)
-            clients.remove(client)
-            client.close()
-            nickname = nicknames[index]
-            broadcast('{} left!'.format(nickname).encode('ascii'))
-            nicknames.remove(nickname)
-            break
-
+def read_requests(r_clients, all_clients):
+    """ Чтение запросов из списка клиентов
+    """
+    responses = {}  # Словарь ответов сервера вида {сокет: запрос}
+    for sock in r_clients:
+        try:
+            data = unpack(sock.recv(1024))
+            responses[sock] = data
+        except:
+            print(f'Client {sock.fileno()} {sock.getpeername()} DISCONNECTED')
+            logger.info(f'Client {sock.fileno()} {sock.getpeername()} DISCONNECTED')
+            all_clients.remove(sock)
     return responses
 
 
-def broadband(msg, clients):
+def parsing_requests(requests):
+    for request in requests.values():
+        if request['action'] == 'msg':
+            if match(r'#', request['to']):
+                broadband(request)
+            else:
+                private_msg(request)
+
+
+def private_msg(msg):
+    for nick in nicknames:
+        if nick == msg['to']:
+            client = clients[nicknames.index(nick)]
+            send_message(msg, client)
+
+
+def room_msg(msg, room):
+    pass
+
+
+def broadband(msg):
     """Флудилка"""
     for client in clients:
-        for val in msg.values():
-            if val["to"] == "#all":
-                try:
-                    client.send(pack(action_msg(val["from"], val["message"])))
-                except:  # Сокет недоступен, клиент отключился
-                    print(f"Client {client.fileno()} {client.getpeername()} DISCONNECTED")
-                    client.close()
-                    clients.remove(client)
+        try:
+            send_message(client, action_msg(msg["message"], msg["from"]))
+            # client.send_me(pack(action_msg(val["from"], val["message"])))
+        except:  # Сокет недоступен, клиент отключился
+            print(f"Client {client.fileno()} {client.getpeername()} DISCONNECTED")
+            client.close()
+            clients.remove(client)
 
+
+
+def get_room(room_name):
+    for room in rooms:
+        if room['room_name'] == room_name:
+            return room
+        else:
+            #TODO Отправить сообщение клиенту о создании комнаты!
+            room_new = {'room_name': room_name, 'clients': [],'nicknames': []}
+            rooms.append(room_new)
 
 
 def main(address):
@@ -79,6 +109,7 @@ def main(address):
         sock.listen(MAX_CONNECTIONS)
         sock.settimeout(TIMEOUT)
         logger.info(f"The server is RUNNING on the port: {address.port}")
+        print(f"The server is RUNNING on the port: {address.port}")
     finally:
         while True:
             try:
@@ -88,7 +119,7 @@ def main(address):
             else:
                 print(f"Connected with {str(addr)}")
                 logger.info(f"Connected with {str(addr)}")
-                send_messages(conn, action_probe())
+                send_message(conn, action_probe())
                 cli_probe = get_message(conn)
                 nickname = cli_probe['user']['account_name']
                 for room in rooms:
@@ -96,28 +127,27 @@ def main(address):
                     if not room['room_name'] == '#all':
                         continue
                     else:
+                        nicknames.append(nickname)
+                        clients.append(conn)
                         room['nicknames'].append(nickname)
                         room['clients'].append(conn)
                         print(f"Nickname is {nickname}")
                         broadband(action_msg(f'{nickname} joined!', room['clients']))
-                        send_messages(action_msg(f'Connected to server!'))
-                        thread = Thread(target=handle, args=(rooms,))
-                        thread.start()
+                        msg = action_msg(f'Connected to server!')
+                        send_message(msg, conn)
                         break
+            finally:
+                r = []
+                w = []
+                
+                try:
+                    r, w, e = select.select(clients, clients, [], WAIT)
+                except:
+                    pass  # Ничего не делать, если какой-то клиент отключился
 
-
-
-            # finally:
-            #     r = []
-            #     w = []
-            #     try:
-            #         r, w, e = select.select(clients, clients, [], WAIT)
-            #     except:
-            #         pass  # Ничего не делать, если какой-то клиент отключился
-
-            #     requests = read_requests(r, clients)  # Сохраним запросы клиентов
-            #     if requests:
-            #         broadband(requests, clients)  # Флудим
+                requests = read_requests(r, clients)  # Сохраним запросы клиентов
+                if requests:
+                    parsing_requests(requests)
 
 
 if __name__ == "__main__":

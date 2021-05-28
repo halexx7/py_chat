@@ -52,7 +52,7 @@ def action_join():
 
 
 # action - LEAVE
-def action_join():
+def action_leave():
     """Функция формирует сообщение LEAVE"""
     msg = {
         "action": "leave",
@@ -63,7 +63,7 @@ def action_join():
 
 
 # action - QUIT
-def action_join():
+def action_quit():
     """Функция формирует сообщение QUIT"""
     msg = {
         "action": "quit"
