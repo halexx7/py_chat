@@ -6,19 +6,6 @@ from settings.jim import pack, unpack
 from settings.variables import BUFFER_SIZE, ENCODING, LOG_FILENAME
 
 
-
-def message(alias, message):
-    """Функция формирует сообщение"""
-    msg = {
-        "action": "msg", 
-        "time": "<unix timestamp>", 
-        "to": "#room_boom", 
-        "from": alias, 
-        "message": message
-        }
-    return msg
-
-
 def get_message(sock, alias):
     """
     Утилита приема и декодирования сообщения.
@@ -30,7 +17,6 @@ def get_message(sock, alias):
         if isinstance(encoded_response, bytes):
             response = unpack(encoded_response)
             if isinstance(response, dict):
-                print(f'<{response["from"] if response["from"] != alias else "You"}>: {response["message"]}')
                 return response
             raise ValueError
         raise ValueError

@@ -1,11 +1,10 @@
 import argparse
-import json
 import sys
 from threading import Thread
 from socket import AF_INET, SOCK_STREAM, socket
 
+from settings.messages import action_msg
 from settings.cfg_client_log import logger
-from settings.jim import pack, unpack
 from settings.utils import get_message, log, send_message
 from settings.variables import DEFAULT_IP_ADDRESS, DEFAULT_PORT, INDENT, RESPONSE, USER
 
@@ -34,27 +33,6 @@ def process_ans(message):
         return f'400 : {message["error"]}'
     raise ValueError
 
-
-def presets_msg():
-    """Функция формирует сообщение серверу"""
-    msg = {
-        "action": "presence",
-        "time": "<unix timestamp>",
-        "user": {"account_name": USER, "password": "Secret"},
-        }
-    return msg
-
-
-def message(alias, message):
-    """Функция формирует сообщение"""
-    msg = {
-        "action": "msg", 
-        "time": "<unix timestamp>", 
-        "to": "#room_boom", 
-        "from": alias, 
-        "message": message
-        }
-    return msg
 
 
 def main(address):
@@ -93,7 +71,7 @@ def main(address):
                     if msg == "exit":
                         sys.exit(1)
 
-                    send_message(sock, message(alias, msg))
+                    send_message(sock, action_msg(alias, msg))
                     logger.info("Message send")
 
                 # while True:
