@@ -43,7 +43,6 @@ def parsing_action(message):
 
 def parsing_response(message):
     """Разбирает ответы от сервера"""
-    print(message)
     try:
         print(f"{message['response']} - {message['alert']}")
     except:
@@ -56,7 +55,6 @@ def receive():
         try:
             global NICKNAME, SOCK
             message = get_message(SOCK)
-            print(message.keys())
             for key in message.keys():
                 if key == 'action':
                     parsing_action(message)
@@ -76,19 +74,16 @@ def write():
             f'g - отправть сообщение ГРУППЕ,\n'\
             f'wg - вступить в группу\n')
         if command == 's':
-            to_name = input(f'Введите ник, кому вы хотели бы отправить сообщение: \n')
-            msg = input(f'Введите сообщение пользователю {to_name.capitalize()}: ')
+            to_name = input(f'Введите ник, кому вы хотели бы отправить сообщение: \n').capitalize()
+            msg = input(f'Введите сообщение пользователю {to_name}: ')
             send_message(SOCK, action_msg(NICKNAME, msg, to_name))
         elif command == 'g':
-            to_room = "#" + input('Введите название группы, кому вы хотели бы отправить сообщение: ')
-            msg = input(f'Введите сообщение группе {to_name.capitalize()}: ')
+            to_room = "#" + input('Введите название группы, кому вы хотели бы отправить сообщение: ').capitalize()
+            msg = input(f'Введите сообщение группе {to_name}: ')
             send_message(SOCK, action_msg(NICKNAME, msg, to_room))
         elif command == 'wg':
-            join_room = "#"+ input('Введите название группы, кому вы хотели бы присоединица: \n')
+            join_room = "#"+ input('Введите название группы, кому вы хотели бы присоединица: \n').capitalize()
             send_message(action_join(join_room))
-        # message = f"{nickname}: {input('')}"
-        # msg = action_msg(nickname, message)
-        # send_message(client, msg)
 
 
 def main(address):

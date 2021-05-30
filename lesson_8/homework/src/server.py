@@ -7,15 +7,14 @@ from re import match
 from socket import AF_INET, SOCK_STREAM, socket
 
 from settings.cfg_server_log import logger
-from settings.response import action_msg, action_probe, get_101
+from settings.response import action_msg, action_probe, get_101, get_102, get_201, get_401, get_404
 from settings.utils import get_message, log, send_message
 from settings.variables import DEFAULT_IP_ADDRESS, DEFAULT_PORT, INDENT, MAX_CONNECTIONS, TIMEOUT, WAIT
 
 
-clients = []
-nicknames = []
-#TODO нужна ли комната all?
-rooms = [{'room_name': '#all', 'clients': clients,'nicknames': nicknames}]
+CLIENTS = []
+NICKNAMES = []
+ROOMS = [{'room_name': '#all', 'clients': CLIENTS,'nicknames': NICKNAMES}]
 
 
 def createParser():
@@ -35,8 +34,8 @@ def my_except_hook(exctype, value, traceback):
 
 
 def read_requests(r_clients, all_clients):
-    """ Чтение запросов из списка клиентов
-    """
+    """ Чтение запросов из списка клиентов"""
+
     responses = {}  # Словарь ответов сервера вида {сокет: запрос}
     for sock in r_clients:
         try:
@@ -50,46 +49,87 @@ def read_requests(r_clients, all_clients):
 
 
 def parsing_requests(requests):
+    """Разбираем клиентское сообщение"""
+
     for request in requests.values():
         if request['action'] == 'msg':
             if match(r'#', request['to']):
-                broadband(request)
+                room_msg(request)
             else:
                 private_msg(request)
 
 
 def private_msg(msg):
-    for nick in nicknames:
-        if nick == msg['to']:
-            client = clients[nicknames.index(nick)]
-            send_message(client, msg)
+    """Отправляем личное сообщение"""
+
+    global NICKNAMES, CLIENTS
+    if not NICKNAMES.count(msg['to']) == 0:
+        for nick in NICKNAMES:
+            if nick == msg['to']:
+                client = CLIENTS[NICKNAMES.index(nick)]
+                send_message(client, msg)
+    else:
+        client = CLIENTS[NICKNAMES.index(msg['from'])]
+        send_message(client, get_404())
 
 
 def room_msg(msg, room):
-    pass
+    """Отправляем сообщение в конкретный чат"""
+
+    if msg['to'] == '#all':
+        broadband(msg)
+    else:
+        room = get_room(msg['to'])
+        client = CLIENTS[NICKNAMES.index(msg['from'])]
+        if not room:
+            room = get_new_room(msg['to'])
+            room['clients'].append(client)
+            room['nicknames'].append(msg['from'])
+            send_message(client, get_404)
+            send_message(client, get_201(msg['to']))
+            send_message(client, get_102(f"Вы подключились к чату {msg['to']}"))
+        else:
+            if not room['nicknames'].count(msg['from']) == 0:
+                for client in room['clients']:
+                    send_message(client, action_msg(msg["message"], client))
+            else:
+                send_message(client, get_102(f"Вы не можете отправить сообщение в чат {msg['to']}\n"\
+                    f"Сначала подключитесь к чату, потом сможете отправлять сообщение!"))
 
 
-def broadband(msg, room):
-    """Флудилка"""
-    for client in clients:
+def broadband(msg):
+    """Флудилка, сообщения всем клиентам"""
+    
+    global CLIENTS
+    for client in CLIENTS:
         try:
-            send_message(client, action_msg(msg["message"], msg["from"]))
-            # client.send_me(pack(action_msg(msg["from"], msg["message"])))
+            send_message(client, action_msg(msg["message"], msg["to"]))
         except:  # Сокет недоступен, клиент отключился
             print(f"Client {client.fileno()} {client.getpeername()} DISCONNECTED")
             client.close()
-            clients.remove(client)
-
+            CLIENTS.remove(client)
 
 
 def get_room(room_name):
-    for room in rooms:
+    """Возвращает требуемый чат, если такого нет, то создает и возвращает новый"""
+
+    global ROOMS    
+    for room in ROOMS:
         if room['room_name'] == room_name:
             return room
         else:
-            #TODO Отправить сообщение клиенту о создании комнаты!
-            room_new = {'room_name': room_name, 'clients': [],'nicknames': []}
-            rooms.append(room_new)
+            continue
+    return False
+        
+
+def get_new_room(room_name):
+    """Создает и возвращает новый чат"""
+
+    global ROOMS
+    #TODO Отправить сообщение клиенту о создании комнаты!
+    room_new = {'room_name': room_name, 'clients': [],'nicknames': []}
+    ROOMS.append(room_new)
+    return room_new
 
 
 def main(address):
@@ -111,6 +151,7 @@ def main(address):
         logger.info(f"The server is RUNNING on the port: {address.port}")
         print(f"The server is RUNNING on the port: {address.port}")
     finally:
+        global ROOMS, NICKNAMES, CLIENTS
         while True:
             try:
                 conn, addr = sock.accept()
@@ -121,29 +162,26 @@ def main(address):
                 logger.info(f"Connected with {str(addr)}")
                 send_message(conn, action_probe())
                 cli_probe = get_message(conn)
+                #TODO сделать проверку на сшществование такого ника
                 nickname = cli_probe['user']['account_name']
-                for room in rooms:
+                for room in ROOMS:
                     #TODO проверить try-except если не будет room_name
                     if not room['room_name'] == '#all':
                         continue
                     else:
-                        nicknames.append(nickname)
-                        clients.append(conn)
+                        NICKNAMES.append(nickname)
+                        CLIENTS.append(conn)
                         print(f'{nickname} joined!')
-                        #TODO разобраться почему не работает, ругается на dumps???
-                        msg = get_101('Connected server!')
-                        send_message(conn, msg)
+                        send_message(conn, get_101('Connected server!'))
                         break
             finally:
                 r = []
                 w = []
-                
                 try:
-                    r, w, e = select.select(clients, clients, [], WAIT)
+                    r, w, e = select.select(CLIENTS, CLIENTS, [], WAIT)
                 except:
                     pass  # Ничего не делать, если какой-то клиент отключился
-
-                requests = read_requests(r, clients)  # Сохраним запросы клиентов
+                requests = read_requests(r, CLIENTS)  # Сохраним запросы клиентов
                 if requests:
                     parsing_requests(requests)
 
