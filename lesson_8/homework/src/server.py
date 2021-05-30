@@ -1,8 +1,10 @@
 import argparse
+from logging.handlers import RotatingFileHandler
 import select
 from threading import Thread
 import pdb
 import sys
+from time import process_time, sleep
 from re import match
 from socket import AF_INET, SOCK_STREAM, socket
 
@@ -57,6 +59,22 @@ def parsing_requests(requests):
                 room_msg(request)
             else:
                 private_msg(request)
+        elif request['action'] == 'join':
+            room = get_room(request['room'])
+            client = CLIENTS[NICKNAMES.index(request['from'])]
+            if room == False:
+                room = get_new_room(request['room'])
+                room['clients'].append(client)
+                room['nicknames'].append(request['from'])
+                send_message(client, get_404())
+                sleep(0.5)
+                send_message(client, get_201(request['room']))
+                sleep(0.5)
+                send_message(client, get_102(f"Вы подключились к чату {request['room']}"))
+            else:
+                room['clients'].append(client)
+                room['nicknames'].append(request['from'])
+                room_msg(request)
 
 
 def private_msg(msg):
@@ -73,28 +91,36 @@ def private_msg(msg):
         send_message(client, get_404())
 
 
-def room_msg(msg, room):
+def room_msg(msg):
     """Отправляем сообщение в конкретный чат"""
+    
+    try:
+        to_name = msg['to']
+    except:
+        to_name = msg['room']
+    finally:
 
-    if msg['to'] == '#all':
-        broadband(msg)
-    else:
-        room = get_room(msg['to'])
-        client = CLIENTS[NICKNAMES.index(msg['from'])]
-        if not room:
-            room = get_new_room(msg['to'])
-            room['clients'].append(client)
-            room['nicknames'].append(msg['from'])
-            send_message(client, get_404)
-            send_message(client, get_201(msg['to']))
-            send_message(client, get_102(f"Вы подключились к чату {msg['to']}"))
+        if to_name == '#all':
+            broadband(msg)
         else:
-            if not room['nicknames'].count(msg['from']) == 0:
-                for client in room['clients']:
-                    send_message(client, action_msg(msg["message"], client))
+            room = get_room(to_name)
+            client = CLIENTS[NICKNAMES.index(msg['from'])]
+            if not room:
+                room = get_new_room(to_name)
+                room['clients'].append(client)
+                room['nicknames'].append(msg['from'])
+                send_message(client, get_404())
+                sleep(0.5)
+                send_message(client, get_201(to_name))
+                sleep(0.5)
+                send_message(client, get_102(f"Вы подключились к чату {to_name}"))
             else:
-                send_message(client, get_102(f"Вы не можете отправить сообщение в чат {msg['to']}\n"\
-                    f"Сначала подключитесь к чату, потом сможете отправлять сообщение!"))
+                if not room['nicknames'].count(msg['from']) == 0:
+                    for client in room['clients']:
+                        send_message(client, action_msg(msg["message"], NICKNAMES[CLIENTS.index(client)]))
+                else:
+                    send_message(client, get_102(f"Вы не можете отправить сообщение в чат {msg['to']}\n"\
+                        f"Сначала подключитесь к чату, потом сможете отправлять сообщение!"))
 
 
 def broadband(msg):

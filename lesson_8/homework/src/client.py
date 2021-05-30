@@ -63,6 +63,7 @@ def receive():
         except:
             print("An error occured!")
             SOCK.close()
+            sys.exit(1)
             break
 
 
@@ -79,11 +80,11 @@ def write():
             send_message(SOCK, action_msg(NICKNAME, msg, to_name))
         elif command == 'g':
             to_room = "#" + input('Введите название группы, кому вы хотели бы отправить сообщение: ').capitalize()
-            msg = input(f'Введите сообщение группе {to_name}: ')
+            msg = input(f'Введите сообщение группе {to_room}: ')
             send_message(SOCK, action_msg(NICKNAME, msg, to_room))
         elif command == 'wg':
-            join_room = "#"+ input('Введите название группы, кому вы хотели бы присоединица: \n').capitalize()
-            send_message(action_join(join_room))
+            join_room = "#"+ input('К какой группе вы хотите присоединица?: \n').capitalize()
+            send_message(SOCK, action_join(NICKNAME, join_room))
 
 
 def main(address):

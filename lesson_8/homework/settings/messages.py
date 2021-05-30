@@ -41,11 +41,12 @@ def action_msg(alias, message, to="#all"):
 
 
 # action - JOIN
-def action_join(room):
+def action_join(alias, room):
     """Функция формирует сообщение JOIN"""
     msg = {
         "action": "join",
         "time": "<unix timestamp>",
+        "from": alias,
         "room": room
     }
     return msg
