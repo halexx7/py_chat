@@ -41,23 +41,23 @@ def action_msg(alias, message, to="#all"):
 
 
 # action - JOIN
-def action_join():
+def action_join(room):
     """Функция формирует сообщение JOIN"""
     msg = {
         "action": "join",
         "time": "<unix timestamp>",
-        "room": "#room_name"
+        "room": room
     }
     return msg
 
 
 # action - LEAVE
-def action_leave():
+def action_leave(room):
     """Функция формирует сообщение LEAVE"""
     msg = {
         "action": "leave",
         "time": "<unix timestamp>",
-        "room": "#room_name"
+        "room": room
     }
     return msg
 

@@ -1,8 +1,7 @@
 import inspect
 import logging
-import sys
+from pickle import dumps, loads
 
-from settings.jim import pack, unpack
 from settings.variables import BUFFER_SIZE, ENCODING, LOG_FILENAME
 
 
@@ -14,7 +13,7 @@ def get_message(sock):
     """
     encoded_response = sock.recv(BUFFER_SIZE)
     if isinstance(encoded_response, bytes):
-        response = unpack(encoded_response)
+        response = loads(encoded_response)
         if isinstance(response, dict):
             return response
         raise ValueError
@@ -27,7 +26,7 @@ def send_message(sock, msg):
     Принимает словарь и отправляет его.
 
     """
-    encoded_message = pack(msg)
+    encoded_message = dumps(msg)
     sock.send(encoded_message)
 
 

@@ -1,13 +1,13 @@
 import argparse
 import select
 from threading import Thread
+import pdb
 import sys
 from re import match
 from socket import AF_INET, SOCK_STREAM, socket
 
 from settings.cfg_server_log import logger
-from settings.response import action_msg, action_probe
-from settings.jim import pack, unpack
+from settings.response import action_msg, action_probe, get_101
 from settings.utils import get_message, log, send_message
 from settings.variables import DEFAULT_IP_ADDRESS, DEFAULT_PORT, INDENT, MAX_CONNECTIONS, TIMEOUT, WAIT
 
@@ -40,7 +40,7 @@ def read_requests(r_clients, all_clients):
     responses = {}  # Словарь ответов сервера вида {сокет: запрос}
     for sock in r_clients:
         try:
-            data = unpack(sock.recv(1024))
+            data = get_message(sock)
             responses[sock] = data
         except:
             print(f'Client {sock.fileno()} {sock.getpeername()} DISCONNECTED')
@@ -62,19 +62,19 @@ def private_msg(msg):
     for nick in nicknames:
         if nick == msg['to']:
             client = clients[nicknames.index(nick)]
-            send_message(msg, client)
+            send_message(client, msg)
 
 
 def room_msg(msg, room):
     pass
 
 
-def broadband(msg):
+def broadband(msg, room):
     """Флудилка"""
     for client in clients:
         try:
             send_message(client, action_msg(msg["message"], msg["from"]))
-            # client.send_me(pack(action_msg(val["from"], val["message"])))
+            # client.send_me(pack(action_msg(msg["from"], msg["message"])))
         except:  # Сокет недоступен, клиент отключился
             print(f"Client {client.fileno()} {client.getpeername()} DISCONNECTED")
             client.close()
@@ -129,12 +129,10 @@ def main(address):
                     else:
                         nicknames.append(nickname)
                         clients.append(conn)
-                        room['nicknames'].append(nickname)
-                        room['clients'].append(conn)
-                        print(f"Nickname is {nickname}")
-                        broadband(action_msg(f'{nickname} joined!', room['clients']))
-                        msg = action_msg(f'Connected to server!')
-                        send_message(msg, conn)
+                        print(f'{nickname} joined!')
+                        #TODO разобраться почему не работает, ругается на dumps???
+                        msg = get_101('Connected server!')
+                        send_message(conn, msg)
                         break
             finally:
                 r = []
