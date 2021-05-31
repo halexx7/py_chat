@@ -1,16 +1,15 @@
-import pdb
 import argparse
-from re import A
 import sys
-from threading import Thread
 from socket import AF_INET, SOCK_STREAM, socket
+from threading import Thread
 
-from settings.messages import action_msg, action_presence, action_auth, action_msg, action_join, action_leave, action_quit
 from settings.cfg_client_log import logger
+from settings.messages import action_auth, action_join, action_leave, action_msg, action_presence, action_quit
 from settings.utils import get_message, log, send_message
 from settings.variables import DEFAULT_IP_ADDRESS, DEFAULT_PORT, INDENT, RESPONSE
 
-NICKNAME, SOCK = '', ''
+NICKNAME, SOCK = "", ""
+
 
 def createParser():
     parser = argparse.ArgumentParser()
@@ -32,59 +31,73 @@ def parsing_action(message):
     """Разбирает сообщения от клиентов"""
     try:
         global NICKNAME, SOCK
-        if message['action'] == 'probe':
+        if message["action"] == "probe":
             send_message(SOCK, action_presence(NICKNAME))
         else:
-            print(message['message'])
+            print(message["message"])
     except:
-            print("An error occured!")
-            SOCK.close()
+        logger.critical("An error occurred!")
+        SOCK.close()
 
 
 def parsing_response(message):
     """Разбирает ответы от сервера"""
+
+    code = message["response"]
+    alert = message["alert"]
     try:
-        print(f"{message['response']} - {message['alert']}")
+        print(f"{message['alert']}")
+        if code == 101 or code == 102 or code == 200 or code == 202:
+            logger.info((f"{code} - {alert}"))
+        elif code == 400 or code == 401 or code == 402 or code == 404 or code == 409:
+            logger.error((f"{code} - {alert}"))
+        else:
+            logger.critical((f"{code} - {alert}"))
     except:
-        print("An error occured!")
+        logger.critical("An error occurred!")
         SOCK.close()
 
 
 def receive():
-    while True:  
+    while True:
         try:
             global NICKNAME, SOCK
             message = get_message(SOCK)
             for key in message.keys():
-                if key == 'action':
+                if key == "action":
                     parsing_action(message)
-                elif key == 'response':
+                elif key == "response":
                     parsing_response(message)
         except:
-            print("An error occured!")
+            logger.critical("An error occurred!")
             SOCK.close()
-            sys.exit(1)
             break
 
 
 def write():
     global NICKNAME
     while True:
-        command = input(f'Выберите действие: \n'\
-            f's - отправить сообщение ПОЛЬЗОВАТЕЛЮ,\n'\
-            f'g - отправть сообщение ГРУППЕ,\n'\
-            f'wg - вступить в группу\n')
-        if command == 's':
-            to_name = input(f'Введите ник, кому вы хотели бы отправить сообщение: \n').capitalize()
-            msg = input(f'Введите сообщение пользователю {to_name}: ')
-            send_message(SOCK, action_msg(NICKNAME, msg, to_name))
-        elif command == 'g':
-            to_room = "#" + input('Введите название группы, кому вы хотели бы отправить сообщение: ').capitalize()
-            msg = input(f'Введите сообщение группе {to_room}: ')
-            send_message(SOCK, action_msg(NICKNAME, msg, to_room))
-        elif command == 'wg':
-            join_room = "#"+ input('К какой группе вы хотите присоединица?: \n').capitalize()
-            send_message(SOCK, action_join(NICKNAME, join_room))
+        start = input("")
+        if start == "h":
+            command = input(
+                f"Выберите действие: \n"
+                f"s - отправить сообщение ПОЛЬЗОВАТЕЛЮ,\n"
+                f"g - отправть сообщение ГРУППЕ,\n"
+                f"wg - вступить в группу\n"
+            )
+            if command == "s":
+                to_name = input(f"Введите ник, кому вы хотели бы отправить сообщение: \n").capitalize()
+                msg = input(f"Введите сообщение пользователю {to_name}: ")
+                send_message(SOCK, action_msg(NICKNAME, msg, to_name))
+            elif command == "g":
+                to_room = "#" + input("Введите название группы, кому вы хотели бы отправить сообщение: ").capitalize()
+                msg = input(f"Введите сообщение группе {to_room}: ")
+                send_message(SOCK, action_msg(NICKNAME, msg, to_room))
+            elif command == "wg":
+                join_room = "#" + input("К какой группе вы хотите присоединица?: \n").capitalize()
+                send_message(SOCK, action_join(NICKNAME, join_room))
+        else:
+            print(f"Для вывода списка комманд, наберите - 'h'")
 
 
 def main(address):
@@ -106,16 +119,17 @@ def main(address):
             SOCK.connect((address.addr, address.port))
         except:
             print(f"Unable to connect")
+            logger.critical("Unable to connect")
             sys.exit()
         else:
             receive_thread = Thread(target=receive)
             receive_thread.start()
             write_thread = Thread(target=write)
             write_thread.start()
-                
+
 
 if __name__ == "__main__":
     parser = createParser()
     address = parser.parse_args()
-    
+
     main(address)
